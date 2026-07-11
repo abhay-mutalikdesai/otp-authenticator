@@ -1,5 +1,7 @@
 # OTP Authenticator
 
+> Just tokens, no tracking. A secure TOTP and HOTP authenticator for the privacy conscious.
+
 A fully-featured, **no-account, no-server** OTP Authenticator browser extension built with React + Vite. Supports TOTP and HOTP with multiple secret encodings, configurable digit lengths, and a polished dark/light UI — all data stays local on your device.
 
 ---
@@ -56,6 +58,10 @@ A fully-featured, **no-account, no-server** OTP Authenticator browser extension 
   - Delete all accounts (keeps settings)
   - Reset settings to defaults (keeps accounts)
 
+### About
+- App info (standards, algorithms, storage, crypto, security) at a glance
+- **Source code** link to the GitHub repository
+
 ---
 
 ## 🏗️ Tech Stack
@@ -79,36 +85,21 @@ No external OTP libraries — TOTP/HOTP implemented from scratch using the nativ
 
 ```
 src/
-├── popup/
-│   ├── App.tsx               # Composition root: data load, theme, auto-lock, routing only
-│   ├── main.tsx               # React root mount + font imports
-│   ├── components/            # Reusable, presentational building blocks
-│   │   ├── Icons.tsx, AppLogo.tsx, Avatar.tsx, Rings.tsx, OtpCode.tsx
-│   │   ├── primitives.tsx     # Header, Confirm, Field, PwInput, TextInput, FSelect, ...
-│   │   ├── AccountCard.tsx, TabBar.tsx, EmptyState.tsx, Toast.tsx
-│   ├── hooks/
-│   │   └── useOtpData.ts      # Per-entry OTP code + period/counter countdown, keyed by id
-│   └── views/                 # One file per screen
-│       ├── LockScreen.tsx, MainList.tsx, EntryDetail.tsx, AddEditEntry.tsx, Reorder.tsx, About.tsx
-│       └── settings/
-│           ├── Settings.tsx, MasterPasswordPanel.tsx, ImportExportPanel.tsx
-├── store/
-│   ├── entriesStore.ts        # Zustand: accounts CRUD, select mode, filtering
-│   ├── settingsStore.ts       # Zustand: theme, defaults, auto-lock
-│   ├── authStore.ts           # Zustand: master password + lock state (fail-safe: locked by default)
-│   └── navigationStore.ts     # Zustand: view stack (list/detail/add/edit/reorder/settings/about)
-├── lib/
-│   ├── otp.ts                 # TOTP + HOTP engine (RFC 4226/6238)
-│   ├── cryptoUtils.ts          # HMAC-SHA1/256/512 via SubtleCrypto
-│   ├── secretDecoder.ts        # Base32 / Base64 / HEX decoder
-│   ├── storage.ts              # chrome.storage.local ↔ localStorage wrapper (isolated keys per domain)
-│   ├── hash.ts                 # SHA-256 helper for master-password hashing
-│   ├── importParser.ts         # Pure parser for JSON/otpauth import text (used to validate + import)
-│   └── otpauthUri.ts           # otpauth:// URI parser + builder
-├── styles/
-│   └── global.css              # CSS design tokens (light/dark), animations, app-frame
-└── types/
-    └── index.ts                 # Shared TypeScript interfaces
+├── popup/            # React UI layer
+│   ├── App.tsx         # Composition root — data load, theme, auto-lock, view routing (key file)
+│   ├── main.tsx         # React root mount + font imports (key file)
+│   ├── components/      # Reusable, presentational building blocks (icons, cards, rings, form fields, toasts)
+│   ├── hooks/            # Shared UI hooks (e.g. live per-entry OTP code + countdown/counter)
+│   └── views/             # One screen per file; views/settings/ holds the Settings screen + its sub-panels
+├── store/             # Zustand stores — one per concern: accounts, app settings, auth/lock, navigation
+├── lib/               # Framework-agnostic core logic: OTP engine, crypto/HMAC, secret decoding,
+│                      #   otpauth:// URI parsing, import parsing, and the storage abstraction
+├── styles/            # Global CSS design tokens (light/dark), animations, app-frame layout
+└── types/             # Shared TypeScript interfaces
+
+manifest.json          # Chrome Manifest V3 config (key file)
+vite.config.ts         # Build config + post-build step that copies manifest.json/icons into dist/ (key file)
+generate-icons.mjs     # Regenerates public/icons/*.png from public/favicon.svg (key file)
 ```
 
 ---

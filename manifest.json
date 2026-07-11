@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "OTP Authenticator",
   "version": "1.0.0",
-  "description": "A secure, local TOTP/HOTP authenticator. No account required.",
+  "description": "Just tokens, no tracking. A secure TOTP and HOTP authenticator for the privacy conscious.",
   "action": {
     "default_popup": "index.html",
     "default_icon": {

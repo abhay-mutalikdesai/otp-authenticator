@@ -8,14 +8,21 @@
  *   blob that every store read-modified-wrote, which is a classic lost-update race).
  * - Writes to a given key are serialized (queued) so two rapid updates to the same domain
  *   always apply in call order, never "last response wins".
- * - A one-time migration reads the legacy combined blob (if present) and legacy master
- *   password key, splits them into the new keys, then removes the old ones.
+ * - Extension upgrades keep chrome.storage.local intact (Chrome never clears storage on
+ *   update, only on uninstall), so no migration is needed for users already on the split-key
+ *   format. For anyone upgrading from the older single-blob format, a one-time migration
+ *   reads the legacy combined blob (if present) and legacy master-password key, splits them
+ *   into the new keys, then removes the old ones. A persisted flag guarantees this legacy
+ *   check only ever runs once per install, not on every popup open.
+ * - Entries + settings + the migration check are fetched together in a SINGLE batched
+ *   chrome.storage.local.get() call per popup session, instead of one round trip per key.
  */
 import type { AppSettings, OtpEntry } from '../types'
 
 const ENTRIES_KEY = 'otp_auth_entries_v1'
 const SETTINGS_KEY = 'otp_auth_settings_v1'
 const MASTER_PW_KEY = 'otp_auth_master_pw_hash_v1'
+const MIGRATED_FLAG_KEY = 'otp_auth_migrated_v1'
 
 /** v0 storage shape — a single combined blob under this key. */
 const LEGACY_DATA_KEY = 'otp_authenticator_data'
@@ -41,19 +48,25 @@ function hasChromeStorage(): boolean {
   return typeof chrome !== 'undefined' && !!chrome.storage?.local
 }
 
-function rawGet<T>(key: string): Promise<T | undefined> {
+function rawGetMany(keys: string[]): Promise<Record<string, unknown>> {
   return new Promise((resolve) => {
     if (hasChromeStorage()) {
-      chrome.storage.local.get(key, (result) => resolve(result[key] as T | undefined))
+      chrome.storage.local.get(keys, (result) => resolve(result))
       return
     }
-    try {
-      const raw = localStorage.getItem(key)
-      resolve(raw !== null ? (JSON.parse(raw) as T) : undefined)
-    } catch {
-      resolve(undefined)
+    const out: Record<string, unknown> = {}
+    for (const key of keys) {
+      try {
+        const raw = localStorage.getItem(key)
+        if (raw !== null) out[key] = JSON.parse(raw)
+      } catch { /* ignore unreadable key */ }
     }
+    resolve(out)
   })
+}
+
+function rawGet<T>(key: string): Promise<T | undefined> {
+  return rawGetMany([key]).then((result) => result[key] as T | undefined)
 }
 
 function rawSet(key: string, value: unknown): Promise<void> {
@@ -93,32 +106,49 @@ function queuedRemove(key: string): Promise<void> {
   return next
 }
 
-// ─── One-time legacy migration ─────────────────────────────────────────────
-let migrationPromise: Promise<void> | null = null
-function ensureMigrated(): Promise<void> {
-  if (!migrationPromise) {
-    migrationPromise = (async () => {
-      const legacy = await rawGet<LegacyAppData>(LEGACY_DATA_KEY)
-      if (legacy) {
-        const [hasEntries, hasSettings] = await Promise.all([
-          rawGet<OtpEntry[]>(ENTRIES_KEY),
-          rawGet<Partial<AppSettings>>(SETTINGS_KEY),
-        ])
+// ─── Bootstrap: entries + settings + one-time legacy migration ─────────────
+// Fetched together in a single round trip and cached for the lifetime of this popup
+// session — entries/settings are only ever loaded once at startup (subsequent reads go
+// through the in-memory Zustand stores), so caching here is safe and removes redundant
+// storage round trips on every popup open.
+interface BootstrapResult {
+  entries: OtpEntry[]
+  settings: AppSettings
+}
+
+let bootstrapPromise: Promise<BootstrapResult> | null = null
+function bootstrap(): Promise<BootstrapResult> {
+  if (!bootstrapPromise) {
+    bootstrapPromise = (async () => {
+      const result = await rawGetMany([ENTRIES_KEY, SETTINGS_KEY, MIGRATED_FLAG_KEY, LEGACY_DATA_KEY])
+      let entries = result[ENTRIES_KEY] as OtpEntry[] | undefined
+      let settings = result[SETTINGS_KEY] as Partial<AppSettings> | undefined
+      const migrated = Boolean(result[MIGRATED_FLAG_KEY])
+      const legacy = result[LEGACY_DATA_KEY] as LegacyAppData | undefined
+
+      // Only ever attempt the legacy migration once per install — the flag is set below
+      // regardless of whether legacy data was actually found, so every popup open after the
+      // very first one (per install/upgrade) skips this branch entirely.
+      if (!migrated) {
         const tasks: Promise<void>[] = []
-        if (!hasEntries && legacy.entries) tasks.push(rawSet(ENTRIES_KEY, legacy.entries))
-        if (!hasSettings && legacy.settings) tasks.push(rawSet(SETTINGS_KEY, { ...DEFAULT_SETTINGS, ...legacy.settings }))
+        if (legacy) {
+          if (entries === undefined && legacy.entries) { entries = legacy.entries; tasks.push(rawSet(ENTRIES_KEY, entries)) }
+          if (settings === undefined && legacy.settings) { settings = { ...DEFAULT_SETTINGS, ...legacy.settings }; tasks.push(rawSet(SETTINGS_KEY, settings)) }
+          tasks.push(rawRemove(LEGACY_DATA_KEY))
+        }
+        tasks.push(rawSet(MIGRATED_FLAG_KEY, true))
         await Promise.all(tasks)
-        await rawRemove(LEGACY_DATA_KEY)
       }
+
+      return { entries: entries ?? [], settings: { ...DEFAULT_SETTINGS, ...settings } }
     })()
   }
-  return migrationPromise
+  return bootstrapPromise
 }
 
 // ─── Entries ────────────────────────────────────────────────────────────────
 export async function loadEntries(): Promise<OtpEntry[]> {
-  await ensureMigrated()
-  return (await rawGet<OtpEntry[]>(ENTRIES_KEY)) ?? []
+  return (await bootstrap()).entries
 }
 
 export async function saveEntries(entries: OtpEntry[]): Promise<void> {
@@ -131,9 +161,7 @@ export async function clearEntries(): Promise<void> {
 
 // ─── Settings ───────────────────────────────────────────────────────────────
 export async function loadSettings(): Promise<AppSettings> {
-  await ensureMigrated()
-  const stored = await rawGet<Partial<AppSettings>>(SETTINGS_KEY)
-  return { ...DEFAULT_SETTINGS, ...stored }
+  return (await bootstrap()).settings
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
@@ -141,6 +169,9 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
 }
 
 // ─── Master password hash ───────────────────────────────────────────────────
+// Kept OUTSIDE the shared bootstrap cache above: unlike entries/settings, this value can
+// change multiple times within a single popup session (set/change/remove password), so it
+// must always be read fresh rather than served from a one-time cached snapshot.
 export async function loadMasterPasswordHash(): Promise<string | null> {
   const existing = await rawGet<string>(MASTER_PW_KEY)
   if (existing) return existing
@@ -160,3 +191,4 @@ export async function saveMasterPasswordHash(hash: string | null): Promise<void>
   if (hash) await queuedSet(MASTER_PW_KEY, hash)
   else await queuedRemove(MASTER_PW_KEY)
 }
+
