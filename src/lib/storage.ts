@@ -32,10 +32,12 @@ const LEGACY_MP_KEY = 'otp_master_pw_hash'
 export const DEFAULT_SETTINGS: AppSettings = {
   theme: 'system',
   defaultDigits: 6,
-  defaultAlgorithm: 'SHA256',
+  defaultAlgorithm: 'SHA1',
   defaultPeriod: 30,
-  showOtp: true,
+  showOtp: false,
   autoLockMinutes: 0,
+  mpReminderDismissed: false,
+  mpReminderSnoozeUntil: 0,
 }
 
 interface LegacyAppData {

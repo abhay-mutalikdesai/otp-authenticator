@@ -38,8 +38,12 @@ export function decodeHex(input: string): Uint8Array {
 
 export function detectEncoding(secret: string): Encoding {
   const s = secret.trim().toUpperCase().replace(/=+$/, '')
-  if (/^[0-9A-F]+$/i.test(s) && s.length % 2 === 0) return 'hex'
-  if (/^[A-Z2-7]+=*$/i.test(s)) return 'base32'
+  // Base32 is checked first and wins any ambiguity (e.g. a string made up only of A-F/2-7,
+  // which is valid as both hex and Base32) since it's the standard encoding for OTP secrets
+  // (Google Authenticator, Microsoft Authenticator, etc.) — hex secrets are comparatively rare
+  // and will still be detected correctly as long as they contain any digit outside 2-7.
+  if (/^[A-Z2-7]+$/.test(s)) return 'base32'
+  if (/^[0-9A-F]+$/.test(s) && s.length % 2 === 0) return 'hex'
   return 'base64'
 }
 

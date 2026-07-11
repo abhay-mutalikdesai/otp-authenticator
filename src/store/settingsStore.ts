@@ -17,6 +17,8 @@ function toAppSettings(s: SettingsState): AppSettings {
     defaultPeriod: s.defaultPeriod,
     showOtp: s.showOtp,
     autoLockMinutes: s.autoLockMinutes,
+    mpReminderDismissed: s.mpReminderDismissed,
+    mpReminderSnoozeUntil: s.mpReminderSnoozeUntil,
   }
 }
 

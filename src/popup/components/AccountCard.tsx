@@ -13,7 +13,7 @@ export interface AccountCardProps {
   onEdit: () => void; onDelete: () => void; onMoveTop: () => void; onIncrement: () => void
 }
 
-/** Clicking the card copies the OTP. "Show account" lives in the 3-dot menu. */
+/** Clicking the card copies the OTP. "View" lives in the 3-dot menu. */
 export function AccountCard({ entry, otp, progress, seconds, showOtp, selected, selectMode, onSelect, onCopy, onShowDetail, onFav, onEdit, onDelete, onMoveTop, onIncrement }: AccountCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuJustClosedRef = useRef(false)
@@ -81,7 +81,7 @@ export function AccountCard({ entry, otp, progress, seconds, showOtp, selected, 
           </button>
           {menuOpen && (
             <DropMenu onClose={handleMenuClose} items={[
-              { icon: <Icons.Eye size={15} />, label: 'Show account', action: onShowDetail },
+              { icon: <Icons.Eye size={15} />, label: 'View', action: onShowDetail },
               { icon: <Icons.Copy size={15} />, label: 'Copy OTP', action: onCopy },
               { icon: <Icons.Star size={15} filled={entry.favourite} />, label: entry.favourite ? 'Unfavourite' : 'Favourite', action: onFav },
               { icon: <Icons.ArrowUp size={15} />, label: 'Move to top', action: onMoveTop },

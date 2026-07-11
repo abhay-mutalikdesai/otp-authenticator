@@ -26,7 +26,7 @@ export function LockScreen() {
       <p style={{ fontSize: 13, color: 'var(--c-text2)', marginBottom: 24 }}>Enter your master password</p>
       <div style={{ width: '100%', maxWidth: 280 }}>
         <div style={{ marginBottom: err ? 6 : 14 }}>
-          <PwInput value={pw} onChange={v => { setPw(v); setErr('') }} placeholder="Master password" onEnter={check} />
+          <PwInput value={pw} onChange={v => { setPw(v); setErr('') }} placeholder="Master password" onEnter={check} autoFocus />
         </div>
         {err && <p style={{ fontSize: 12, color: 'var(--c-danger)', marginBottom: 12, textAlign: 'center' }}>{err}</p>}
         <button onClick={check} disabled={!pw || busy}

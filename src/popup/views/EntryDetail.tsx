@@ -4,6 +4,7 @@ import useEntriesStore from '../../store/entriesStore'
 import { useNavigationStore } from '../../store/navigationStore'
 import type { OtpEntry } from '../../types'
 import { generateOTP, getProgress, getSecondsRemaining } from '../../lib/otp'
+import { detectEncoding } from '../../lib/secretDecoder'
 import { useToast } from '../components/Toast'
 import { Avatar } from '../components/Avatar'
 import { CounterRing, ProgressRing } from '../components/Rings'
@@ -121,6 +122,7 @@ export function EntryDetail() {
           {[
             ['Type', entry.type.toUpperCase()],
             ['Algorithm', entry.algorithm],
+            ['Encoding', (entry.encoding === 'auto' ? detectEncoding(entry.secret) : entry.encoding).toUpperCase()],
             ['Digits', String(entry.digits)],
             entry.type === 'totp' ? ['Period', `${entry.period}s`] : ['Counter', String(entry.counter)],
             ['Created', new Date(entry.createdAt).toLocaleDateString()],

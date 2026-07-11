@@ -1,12 +1,17 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import useEntriesStore from '../../store/entriesStore'
 import useSettingsStore from '../../store/settingsStore'
+import useAuthStore from '../../store/authStore'
 import { useNavigationStore } from '../../store/navigationStore'
 import type { Algorithm, Encoding, OtpType } from '../../types'
 import { validateAndPreview } from '../../lib/otp'
 import { parseOtpauthUri } from '../../lib/otpauthUri'
+import { detectEncoding } from '../../lib/secretDecoder'
+import { getSessionValue, removeSessionValue, setSessionValue, SESSION_KEYS, type DraftSession } from '../../lib/sessionState'
 import { useToast } from '../components/Toast'
 import { Header, Field, PwInput, TextInput, FSelect } from '../components/primitives'
+
+const UNPROTECTED_DRAFT_MAX_AGE_MS = 5 * 60 * 1000
 
 /**
  * - Edit mode hides the Type selector (type is fixed for existing accounts)
@@ -27,7 +32,14 @@ export function AddEditEntry() {
   const [issuer, setIssuer] = useState(ex?.issuer ?? '')
   const [account, setAccount] = useState(ex?.account ?? '')
   const [secret, setSecret] = useState(ex?.secret ?? '')
-  const [encoding, setEncoding] = useState<Encoding>(ex?.encoding ?? 'auto')
+  // New accounts default to Auto-detect (simplest for pasting whatever a provider gives you).
+  // Existing entries never show "Auto-detect" as the current encoding — it's resolved to the
+  // concrete encoding actually used. The user can still pick Auto-detect manually if they're
+  // about to replace the secret and want it re-detected.
+  const [encoding, setEncoding] = useState<Encoding>(() => {
+    if (!ex) return 'auto'
+    return ex.encoding === 'auto' ? detectEncoding(ex.secret) : ex.encoding
+  })
   const [algorithm, setAlgorithm] = useState<Algorithm>(ex?.algorithm ?? defaultAlgorithm ?? 'SHA256')
   const [digits, setDigits] = useState(String(ex?.digits ?? defaultDigits ?? 6))
   const [period, setPeriod] = useState(String(ex?.period ?? defaultPeriod ?? 30))
@@ -39,6 +51,41 @@ export function AddEditEntry() {
   const [saving, setSaving] = useState(false)
   const [adv, setAdv] = useState(false)
   const [errs, setErrs] = useState<Record<string, string>>({})
+  const draftRestored = useRef(false)
+
+  // Restore an in-progress draft left over from before the popup was closed (e.g. the user
+  // clicked outside the extension mid-edit). Only restores if it matches this exact screen.
+  useEffect(() => {
+    (async () => {
+      const draft = await getSessionValue<DraftSession>(SESSION_KEYS.draft)
+      draftRestored.current = true
+      if (!draft || draft.view !== view || (isEdit && draft.id !== params.id)) return
+      const maxAgeMs = useAuthStore.getState().hasMasterPassword ? null : UNPROTECTED_DRAFT_MAX_AGE_MS
+      if (maxAgeMs !== null && Date.now() - draft.savedAt > maxAgeMs) { await removeSessionValue(SESSION_KEYS.draft); return }
+      const f = draft.fields as Record<string, string>
+      if (f.type) setType(f.type as OtpType)
+      if (f.issuer !== undefined) setIssuer(f.issuer)
+      if (f.account !== undefined) setAccount(f.account)
+      if (f.secret !== undefined) setSecret(f.secret)
+      if (f.encoding) setEncoding(f.encoding as Encoding)
+      if (f.algorithm) setAlgorithm(f.algorithm as Algorithm)
+      if (f.digits) setDigits(f.digits)
+      if (f.period) setPeriod(f.period)
+      if (f.counter) setCounter(f.counter)
+      if (f.adv !== undefined) setAdv(f.adv === 'true')
+    })()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Persist the in-progress form (debounced) so it survives the popup being closed/reopened.
+  useEffect(() => {
+    if (!draftRestored.current) return
+    const t = setTimeout(() => {
+      const fields = { type, issuer, account, secret, encoding, algorithm, digits, period, counter, adv: String(adv) }
+      void setSessionValue(SESSION_KEYS.draft, { view, id: isEdit ? params.id : undefined, fields, savedAt: Date.now() } satisfies DraftSession)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [type, issuer, account, secret, encoding, algorithm, digits, period, counter, adv, view, isEdit, params.id])
 
   const doPreview = useCallback(async () => {
     if (!secret.trim()) { setPreview(null); setPreviewErr(''); return }
@@ -76,6 +123,7 @@ export function AddEditEntry() {
       }
       if (isEdit && ex) await updateEntry(ex.id, data)
       else await addEntry(data)
+      await removeSessionValue(SESSION_KEYS.draft)
       show(isEdit ? 'Updated!' : 'Account added!', 'success')
       goBack()
     } catch (e) { show((e as Error).message, 'error') }
@@ -119,7 +167,7 @@ export function AddEditEntry() {
         <Field label="Account" error={errs.account}><TextInput value={account} onChange={setAccount} placeholder="e.g. user@email.com" /></Field>
 
         <Field label="Secret Key" error={errs.secret}>
-          <PwInput value={secret} onChange={v => { setSecret(v); setErrs(p => ({ ...p, secret: '' })) }} placeholder="Base32 encoded secret" />
+          <PwInput value={secret} onChange={v => { setSecret(v); setErrs(p => ({ ...p, secret: '' })) }} placeholder="secret key" />
           {preview && !errs.secret && <p style={{ fontSize: 12, color: 'var(--c-success)', marginTop: 4 }}>✓ Valid — preview: {preview}</p>}
           {previewErr && !errs.secret && <p style={{ fontSize: 12, color: 'var(--c-danger)', marginTop: 4 }}>✗ {previewErr}</p>}
         </Field>
@@ -135,7 +183,7 @@ export function AddEditEntry() {
               <FSelect value={encoding} onChange={v => setEncoding(v as Encoding)} options={[{ value: 'auto', label: 'Auto-detect' }, { value: 'base32', label: 'Base32' }, { value: 'base64', label: 'Base64' }, { value: 'hex', label: 'Hex' }]} />
             </Field>
             <Field label="Algorithm">
-              <FSelect value={algorithm} onChange={v => setAlgorithm(v as Algorithm)} options={[{ value: 'SHA256', label: 'SHA-256 (recommended)' }, { value: 'SHA1', label: 'SHA-1' }, { value: 'SHA512', label: 'SHA-512' }]} />
+              <FSelect value={algorithm} onChange={v => setAlgorithm(v as Algorithm)} options={[{ value: 'SHA256', label: 'SHA-256' }, { value: 'SHA1', label: 'SHA-1' }, { value: 'SHA512', label: 'SHA-512' }]} />
             </Field>
             <Field label="Digits">
               <FSelect value={digits} onChange={setDigits} options={['4', '6', '8'].map(d => ({ value: d, label: `${d} digits` }))} />

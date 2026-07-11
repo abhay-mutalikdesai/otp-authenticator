@@ -10,7 +10,7 @@ A fully-featured, **no-account, no-server** OTP Authenticator browser extension 
 
 ### Core OTP
 - **TOTP** (Time-based, RFC 6238) and **HOTP** (Counter-based, RFC 4226)
-- Algorithms: **SHA1 / SHA256 / SHA512**
+- Algorithms: **SHA1 / SHA256 / SHA512** (new accounts default to **SHA1 + Base32**, matching Google Authenticator / Microsoft Authenticator)
 - Digits: **4 / 6 / 8**
 - TOTP periods: **15 / 30 / 60 / 90 / 120 seconds**
 - Secret encodings: **Base32, Base64, HEX, Auto-detect**
@@ -53,7 +53,9 @@ A fully-featured, **no-account, no-server** OTP Authenticator browser extension 
 - **New account defaults**: Algorithm, Digits, Period
 - **Security**:
   - Master password (set / change / remove) — protects the app with SHA-256 hashed password
+  - If no master password is set, a one-time prompt offers to enable one, with **Remind me later** (24h snooze) and **Don't show again** options
   - **Auto-lock after**: Never / 1 min / 5 min / 15 min / 30 min / 1 hour (resets on any interaction)
+  - Closing the popup (e.g. clicking outside the extension) does **not** lock the app by itself — only the auto-lock timer elapsing, locking manually, or closing the browser will lock it; any in-progress screen or unsaved form is restored when reopened
 - **Data**:
   - Delete all accounts (keeps settings)
   - Reset settings to defaults (keeps accounts)

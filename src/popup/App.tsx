@@ -12,6 +12,11 @@ import { AddEditEntry } from './views/AddEditEntry'
 import { Reorder } from './views/Reorder'
 import { Settings } from './views/settings/Settings'
 import { About } from './views/About'
+import { MasterPasswordPrompt } from './components/MasterPasswordPrompt'
+
+/** No-restore window for in-progress screen/form state when no master password is set —
+ * there's no lock to bound its lifetime otherwise, so cap it short. */
+const UNPROTECTED_SESSION_MAX_AGE_MS = 5 * 60 * 1000
 
 /**
  * Composition root — owns app-wide concerns only (data loading, theme, auto-lock, routing).
@@ -21,23 +26,35 @@ import { About } from './views/About'
 export default function App() {
   const loadFromStorage = useEntriesStore(s => s.loadFromStorage)
   const loadSettings = useSettingsStore(s => s.loadSettings)
+  const settingsLoaded = useSettingsStore(s => s.loaded)
   const theme = useSettingsStore(s => s.theme)
   const autoLockMinutes = useSettingsStore(s => s.autoLockMinutes)
-  const { view } = useNavigationStore()
+  const mpReminderDismissed = useSettingsStore(s => s.mpReminderDismissed)
+  const mpReminderSnoozeUntil = useSettingsStore(s => s.mpReminderSnoozeUntil)
+  const { view, hydrate: hydrateNavigation } = useNavigationStore()
 
   const checked = useAuthStore(s => s.checked)
   const locked = useAuthStore(s => s.locked)
   const hasMasterPassword = useAuthStore(s => s.hasMasterPassword)
   const checkAuth = useAuthStore(s => s.checkAuth)
   const lock = useAuthStore(s => s.lock)
+  const touchSession = useAuthStore(s => s.touchSession)
 
   const lockTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
-    loadFromStorage()
-    loadSettings()
-    checkAuth()
-  }, [loadFromStorage, loadSettings, checkAuth])
+    (async () => {
+      await loadSettings()
+      loadFromStorage()
+      await checkAuth(useSettingsStore.getState().autoLockMinutes)
+      // Restore the last screen/in-progress form only once we know the app is actually
+      // unlocked — otherwise a closed popup reopening while locked would briefly reveal it.
+      if (!useAuthStore.getState().locked) {
+        const maxAgeMs = useAuthStore.getState().hasMasterPassword ? null : UNPROTECTED_SESSION_MAX_AGE_MS
+        await hydrateNavigation(maxAgeMs)
+      }
+    })()
+  }, [loadFromStorage, loadSettings, checkAuth, hydrateNavigation])
 
   // Theme
   useEffect(() => {
@@ -52,13 +69,18 @@ export default function App() {
     return () => mq.removeEventListener('change', fn)
   }, [theme])
 
-  // Auto-lock timer — reset on any interaction, lock after configured idle time
+  // Auto-lock timer — reset on any interaction, lock after configured idle time. Also
+  // refreshes the session's last-active timestamp so elapsed idle time is measured
+  // correctly even if the popup is closed and reopened before the timer fires.
   const resetLockTimer = useCallback(() => {
     if (lockTimerRef.current) clearTimeout(lockTimerRef.current)
-    if (hasMasterPassword && autoLockMinutes > 0 && !locked) {
-      lockTimerRef.current = setTimeout(() => lock(), autoLockMinutes * 60 * 1000)
+    if (hasMasterPassword && !locked) {
+      touchSession()
+      if (autoLockMinutes > 0) {
+        lockTimerRef.current = setTimeout(() => lock(), autoLockMinutes * 60 * 1000)
+      }
     }
-  }, [hasMasterPassword, autoLockMinutes, locked, lock])
+  }, [hasMasterPassword, autoLockMinutes, locked, lock, touchSession])
 
   useEffect(() => {
     resetLockTimer()
@@ -77,10 +99,14 @@ export default function App() {
     }
   }
 
+  // Only shown on the main list — otherwise it would immediately re-cover the Settings
+  const showMpPrompt = view === 'list' && checked && !locked && settingsLoaded && !hasMasterPassword
+    && !mpReminderDismissed && Date.now() > mpReminderSnoozeUntil
+
   return (
     <div className="app-frame" onPointerDown={resetLockTimer} onKeyDown={resetLockTimer as unknown as KeyboardEventHandler}>
       <ToastProvider>
-        {!checked ? null : locked ? <LockScreen /> : renderView()}
+        {!checked ? null : locked ? <LockScreen /> : <>{renderView()}{showMpPrompt && <MasterPasswordPrompt />}</>}
       </ToastProvider>
     </div>
   )

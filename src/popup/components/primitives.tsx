@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { Icons } from './Icons'
 
 // ─── Buttons & menus ────────────────────────────────────────────────────────
@@ -100,11 +100,13 @@ export function Field({ label, error, children }: { label: string; error?: strin
     </div>
   )
 }
-export function PwInput({ value, onChange, placeholder, onEnter }: { value: string; onChange: (v: string) => void; placeholder?: string; onEnter?: () => void }) {
+export function PwInput({ value, onChange, placeholder, onEnter, autoFocus }: { value: string; onChange: (v: string) => void; placeholder?: string; onEnter?: () => void; autoFocus?: boolean }) {
   const [show, setShow] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => { if (autoFocus) inputRef.current?.focus() }, [autoFocus])
   return (
     <div style={{ position: 'relative' }}>
-      <input type={show ? 'text' : 'password'} value={value} onChange={e => onChange(e.target.value)}
+      <input ref={inputRef} type={show ? 'text' : 'password'} value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder} onKeyDown={e => e.key === 'Enter' && onEnter?.()}
         style={{ width: '100%', padding: '9px 38px 9px 12px', border: '1.5px solid var(--c-border)', borderRadius: 8, background: 'var(--c-surface)', color: 'var(--c-text)', fontSize: 14, outline: 'none', boxSizing: 'border-box' }}
         onFocus={e => (e.currentTarget.style.borderColor = 'var(--c-primary)')}
