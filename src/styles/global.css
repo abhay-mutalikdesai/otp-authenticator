@@ -1,0 +1,94 @@
+/* ─── CSS Reset ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── Design Tokens — Light ─────────────────────────────────────────────────── */
+:root {
+  --c-primary:  #6366F1;
+  --c-surface:  #FFFFFF;
+  --c-surface2: #F4F4FC;
+  --c-border:   #E4E4EF;
+  --c-text:     #111827;
+  --c-text2:    #6B7280;
+  --c-text3:    #9CA3AF;
+  --c-danger:   #EF4444;
+  --c-success:  #10B981;
+  --c-overlay:  rgba(0, 0, 0, 0.42);
+  --shadow-lg:  0 8px 32px rgba(0, 0, 0, 0.09);
+}
+
+/* ─── Design Tokens — Dark ──────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --c-primary:  #818CF8;
+  --c-surface:  #1C1C2C;
+  --c-surface2: #14141F;
+  --c-border:   #2C2C42;
+  --c-text:     #E2E8F0;
+  --c-text2:    #94A3B8;
+  --c-text3:    #4B5563;
+  --c-danger:   #F87171;
+  --c-success:  #34D399;
+  --c-overlay:  rgba(0, 0, 0, 0.62);
+  --shadow-lg:  0 8px 32px rgba(0, 0, 0, 0.38);
+}
+
+/* ─── Base ──────────────────────────────────────────────────────────────────── */
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 380px;
+  height: 580px;
+}
+
+/* ─── App Frame ────────────────────────────────────────────────────────────────── */
+.app-frame {
+  width: 380px;
+  height: 580px;
+  overflow: hidden;
+  position: relative;
+  background: var(--c-surface);
+  color: var(--c-text);
+  display: flex;
+  flex-direction: column;
+  border: 1.5px solid var(--c-border);
+  border-radius: 0;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--c-border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--c-text3); }
+
+/* ─── Animations ────────────────────────────────────────────────────────────── */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(18px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+.anim-slide-right { animation: slideInRight 180ms ease both; }
+.anim-slide-up    { animation: slideInUp    180ms ease both; }
