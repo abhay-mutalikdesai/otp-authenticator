@@ -17,6 +17,7 @@ import { create } from 'zustand'
 import { sha256 } from '../lib/hash'
 import { loadMasterPasswordHash, saveMasterPasswordHash } from '../lib/storage'
 import { getSessionValue, removeSessionValue, setSessionValue, SESSION_KEYS, type AuthSession } from '../lib/sessionState'
+import useSettingsStore from './settingsStore'
 
 interface AuthState {
   checked: boolean
@@ -86,6 +87,9 @@ const useAuthStore = create<AuthState>((set, get) => ({
     await saveMasterPasswordHash(null)
     set({ hasMasterPassword: false, locked: false })
     await removeSessionValue(SESSION_KEYS.auth)
+    // Protection was just turned off — surface the "set a master password" nudge again
+    // even if it was previously snoozed/dismissed while a password was still set.
+    await useSettingsStore.getState().updateSetting('mpReminderSnoozeUntil', 0)
     return true
   },
 

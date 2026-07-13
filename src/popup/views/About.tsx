@@ -10,11 +10,10 @@ export function About() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }} className="anim-slide-right">
       <Header title="About" onBack={goBack} />
       <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'linear-gradient(135deg, #6366F1, #8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14, marginTop: 16 }}>
-          <Icons.Shield size={34} color="#fff" />
-        </div>
+        <img src="/icons/icon-128.png" width={72} height={72} alt="" style={{ marginBottom: 14, marginTop: 16 }} />
         <p style={{ fontSize: 19, fontWeight: 800, marginBottom: 4 }}>OTP Authenticator</p>
         <p style={{ color: 'var(--c-text2)', fontSize: 13, marginBottom: 22 }}>Secure · Private · Local-first</p>
+
         <SectionCard>
           {[
             ['Standards', 'TOTP (RFC 6238), HOTP (RFC 4226)'],

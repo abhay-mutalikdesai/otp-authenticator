@@ -29,7 +29,6 @@ export default function App() {
   const settingsLoaded = useSettingsStore(s => s.loaded)
   const theme = useSettingsStore(s => s.theme)
   const autoLockMinutes = useSettingsStore(s => s.autoLockMinutes)
-  const mpReminderDismissed = useSettingsStore(s => s.mpReminderDismissed)
   const mpReminderSnoozeUntil = useSettingsStore(s => s.mpReminderSnoozeUntil)
   const { view, hydrate: hydrateNavigation } = useNavigationStore()
 
@@ -101,7 +100,7 @@ export default function App() {
 
   // Only shown on the main list — otherwise it would immediately re-cover the Settings
   const showMpPrompt = view === 'list' && checked && !locked && settingsLoaded && !hasMasterPassword
-    && !mpReminderDismissed && Date.now() > mpReminderSnoozeUntil
+    && Date.now() > mpReminderSnoozeUntil
 
   return (
     <div className="app-frame" onPointerDown={resetLockTimer} onKeyDown={resetLockTimer as unknown as KeyboardEventHandler}>

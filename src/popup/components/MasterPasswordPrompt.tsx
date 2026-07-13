@@ -2,7 +2,9 @@ import useSettingsStore from '../../store/settingsStore'
 import { useNavigationStore } from '../../store/navigationStore'
 import { Icons } from './Icons'
 
-const SNOOZE_MS = 24 * 60 * 60 * 1000 // 24h
+const SNOOZE_MS = 24 * 60 * 60 * 1000 // 24h — "Remind me later"
+const LONG_SNOOZE_MS = 90 * 24 * 60 * 60 * 1000 // 90 days — "Don't show again"; bounded (not
+// forever) so this security nudge can never get silenced permanently with no way back.
 
 /** First-run nudge shown once (per snooze window) while no master password is set. */
 export function MasterPasswordPrompt() {
@@ -31,7 +33,7 @@ export function MasterPasswordPrompt() {
               style={{ flex: 1, padding: '8px', borderRadius: 8, background: 'var(--c-surface2)', border: '1px solid var(--c-border)', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: 'var(--c-text)' }}>
               Remind me later
             </button>
-            <button onClick={() => updateSetting('mpReminderDismissed', true)}
+            <button onClick={() => updateSetting('mpReminderSnoozeUntil', Date.now() + LONG_SNOOZE_MS)}
               style={{ flex: 1, padding: '8px', borderRadius: 8, background: 'var(--c-surface2)', border: '1px solid var(--c-border)', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: 'var(--c-text)' }}>
               Don't show again
             </button>

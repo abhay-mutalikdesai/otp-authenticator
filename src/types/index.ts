@@ -30,8 +30,10 @@ export interface AppSettings {
   defaultPeriod: number
   showOtp: boolean
   autoLockMinutes: number  // 0 = never
-  mpReminderDismissed: boolean   // "Don't show again" on the master-password nudge
-  mpReminderSnoozeUntil: number  // "Remind me later" — epoch ms, 0 = not snoozed
+  // Epoch ms until the master-password nudge is hidden, 0 = not snoozed. "Remind me later"
+  // sets a short snooze; "Don't show again" sets a long (but bounded) one — bounded so the
+  // security reminder can never get silenced forever with no way back.
+  mpReminderSnoozeUntil: number
 }
 
 export interface OtpData {
