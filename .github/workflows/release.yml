@@ -1,4 +1,4 @@
-name: 'publish'
+name: 'Publish Installers'
 on:
   push:
     tags:
@@ -10,10 +10,10 @@ jobs:
       contents: write
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: setup node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20
 
@@ -29,21 +29,22 @@ jobs:
       - name: Zip Extension (Windows)
         run: Compress-Archive -Path dist\* -DestinationPath otp-authenticator-extension.zip
 
-      - name: Upload Extension to Release
-        uses: softprops/action-gh-release@v2
+      - name: Build Desktop App
+        uses: tauri-apps/tauri-action@v0
+
+      - name: Zip Desktop Apps
+        run: |
+          Compress-Archive -Path src-tauri\target\release\bundle\nsis\*.exe -DestinationPath otp-authenticator-windows-exe.zip
+          Compress-Archive -Path src-tauri\target\release\bundle\msi\*.msi -DestinationPath otp-authenticator-windows-msi.zip
+
+      - name: Upload Assets to Release
+        uses: softprops/action-gh-release@v3
         with:
-          files: otp-authenticator-extension.zip
+          files: |
+            otp-authenticator-extension.zip
+            otp-authenticator-windows-exe.zip
+            otp-authenticator-windows-msi.zip
           draft: true
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version
-          releaseName: 'OTP Authenticator v__VERSION__'
-          releaseBody: 'See the assets below to download and install this version.'
-          releaseDraft: true
-          prerelease: false
