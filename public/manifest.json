@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OTP Authenticator",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Just tokens, no tracking. A secure TOTP and HOTP authenticator for the privacy conscious.",
   "action": {
     "default_popup": "index.html",
@@ -18,7 +18,11 @@
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
   },
-  "permissions": ["storage", "clipboardWrite", "clipboardRead"],
+  "permissions": [
+    "storage",
+    "clipboardWrite",
+    "clipboardRead"
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

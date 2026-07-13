@@ -8,14 +8,18 @@
   },
   "package": {
     "productName": "OTP Authenticator",
-    "version": "0.1.0"
+    "version": "1.0.0"
   },
   "tauri": {
     "allowlist": {
       "all": false,
       "fs": {
         "all": true,
-        "scope": ["$APPDATA/**", "$APPCONFIG/**", "$APPCONFIG"]
+        "scope": [
+          "$APPDATA/**",
+          "$APPCONFIG/**",
+          "$APPCONFIG"
+        ]
       },
       "path": {
         "all": true

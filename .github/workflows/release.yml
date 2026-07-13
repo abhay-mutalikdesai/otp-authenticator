@@ -34,7 +34,7 @@ jobs:
         run: npm run build
 
       - name: Zip Extension (Windows)
-        run: Compress-Archive -Path dist\* -DestinationPath browser-extension.zip
+        run: Compress-Archive -Path dist\* -DestinationPath otp-authenticator-browser-extension.zip
 
       - name: Build Desktop App
         uses: tauri-apps/tauri-action@v0
@@ -48,7 +48,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            browser-extension.zip
+            otp-authenticator-browser-extension.zip
             otp-authenticator-windows-exe.zip
             otp-authenticator-windows-msi.zip
           draft: true

@@ -38,27 +38,36 @@ A fully-featured, **no-account, no-server** OTP Authenticator built with React +
 - Node.js 18+
 - [Rust toolchain](https://rustup.rs/) (Required for the Desktop app only)
 
-### Local Development (Web)
+### 🛠️ Local Development
+
+**Web & Extension**
 ```bash
 npm install
-npm run dev
+npm run dev    # Start web dev server
+npm run build  # Build extension to the dist/ folder
 ```
+To load the extension locally, go to `chrome://extensions` (or `edge://extensions`) → **Developer mode** → **Load unpacked** → select the `dist/` folder.
 
-### Desktop App (Tauri)
+**Desktop App (Tauri)**
 ```bash
-# Start the desktop dev server (opens in system tray)
-npm run tauri dev
-
-# Compile the final .exe and .msi installers
-npm run tauri build
+npm run tauri dev    # Start the desktop dev server (opens in system tray)
+npm run tauri build  # Compile the final .exe and .msi installers locally
 ```
 
-### Browser Extension
-```bash
-# Build the Chrome extension to the dist/ folder
-npm run build
-```
-To load it, go to `chrome://extensions` → **Developer mode** → **Load unpacked** → select `dist/`.
+### 📦 Releases & Deployment
+
+Automated builds are created via GitHub Actions on new version tags (`v*`) and uploaded to GitHub Releases.
+
+**Browser Extension**
+1. Download `otp-authenticator-browser-extension.zip` from the latest release and extract it.
+2. Go to `chrome://extensions` (or `edge://extensions`).
+3. Enable **Developer mode**.
+4. Click **Load unpacked** and select the extracted folder.
+
+**Desktop App (Windows)**
+1. Download either `otp-authenticator-windows-exe.zip` or `otp-authenticator-windows-msi.zip` from the latest release.
+2. Extract the archive.
+3. Run the `.exe` or `.msi` installer to set up the application on your system.
 
 ---
 
