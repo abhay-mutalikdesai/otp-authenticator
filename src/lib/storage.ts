@@ -62,9 +62,11 @@ async function desktopGetMany(keys: string[]): Promise<Record<string, unknown>> 
 
 async function desktopSet(key: string, value: unknown): Promise<void> {
   const { writeTextFile, BaseDirectory, createDir, exists } = await import('@tauri-apps/api/fs')
+  const { appConfigDir } = await import('@tauri-apps/api/path')
   try {
-    if (!(await exists('', { dir: BaseDirectory.AppConfig }))) {
-      await createDir('', { dir: BaseDirectory.AppConfig, recursive: true })
+    const configDir = await appConfigDir()
+    if (!(await exists(configDir))) {
+      await createDir(configDir, { recursive: true })
     }
     await writeTextFile(`${key}.json`, JSON.stringify(value), { dir: BaseDirectory.AppConfig })
   } catch (e) {
