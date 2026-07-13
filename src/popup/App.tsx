@@ -13,6 +13,8 @@ import { Reorder } from './views/Reorder'
 import { Settings } from './views/settings/Settings'
 import { About } from './views/About'
 import { MasterPasswordPrompt } from './components/MasterPasswordPrompt'
+import { invoke } from '@tauri-apps/api/tauri'
+import { appWindow } from '@tauri-apps/api/window'
 
 /** Max age for restoring draft form state without master password. */
 const UNPROTECTED_SESSION_MAX_AGE_MS = 5 * 60 * 1000
@@ -23,6 +25,7 @@ export default function App() {
   const loadSettings = useSettingsStore(s => s.loadSettings)
   const settingsLoaded = useSettingsStore(s => s.loaded)
   const theme = useSettingsStore(s => s.theme)
+  const windowMode = useSettingsStore(s => s.windowMode)
   const autoLockMinutes = useSettingsStore(s => s.autoLockMinutes)
   const mpReminderSnoozeUntil = useSettingsStore(s => s.mpReminderSnoozeUntil)
   const view = useNavigationStore(s => s.view)
@@ -36,6 +39,7 @@ export default function App() {
   const touchSession = useAuthStore(s => s.touchSession)
 
   const lockTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const lastTouchRef = useRef(0)
 
   useEffect(() => {
     (async () => {
@@ -63,8 +67,24 @@ export default function App() {
     return () => mq.removeEventListener('change', fn)
   }, [theme])
 
+  // Window Mode
+  useEffect(() => {
+    if (settingsLoaded) {
+      invoke('set_window_mode', { mode: !!windowMode }).catch(() => {})
+    }
+  }, [windowMode, settingsLoaded])
+
+  // Sync auth state to rust for window mode positioning logic
+  useEffect(() => {
+    invoke('set_auth_state', { locked, hasMaster: hasMasterPassword }).catch(() => {})
+  }, [locked, hasMasterPassword])
+
   // Auto-lock timer: reset on interaction, lock after idle. Refreshes session timestamp.
   const resetLockTimer = useCallback(() => {
+    const now = Date.now()
+    if (now - lastTouchRef.current < 2000) return
+    lastTouchRef.current = now
+
     if (lockTimerRef.current) clearTimeout(lockTimerRef.current)
     if (hasMasterPassword && !locked) {
       touchSession()
@@ -78,6 +98,16 @@ export default function App() {
     resetLockTimer()
     return () => { if (lockTimerRef.current) clearTimeout(lockTimerRef.current) }
   }, [resetLockTimer])
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    resetLockTimer()
+    if (windowMode && e.button === 0) {
+      const target = e.target as HTMLElement
+      if (target.closest('[data-app-drag-region]') && !target.closest('button, input, a, textarea, select')) {
+        appWindow.startDragging().catch(() => {})
+      }
+    }
+  }, [resetLockTimer, windowMode])
 
   const renderView = () => {
     switch (view) {
@@ -96,7 +126,7 @@ export default function App() {
     && Date.now() > mpReminderSnoozeUntil
 
   return (
-    <div className="app-frame" onPointerDown={resetLockTimer} onKeyDown={resetLockTimer as unknown as KeyboardEventHandler}>
+    <div className="app-frame" onPointerDown={handlePointerDown} onPointerMove={resetLockTimer} onKeyDown={resetLockTimer as unknown as KeyboardEventHandler}>
       <ToastProvider>
         {!checked ? null : locked ? <LockScreen /> : <>{renderView()}{showMpPrompt && <MasterPasswordPrompt />}</>}
       </ToastProvider>

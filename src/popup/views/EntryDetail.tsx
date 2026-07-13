@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type React from 'react'
+import useSettingsStore from '../../store/settingsStore'
 import useEntriesStore from '../../store/entriesStore'
 import { useNavigationStore } from '../../store/navigationStore'
 import type { OtpEntry } from '../../types'
@@ -25,7 +26,8 @@ export function EntryDetail() {
   // Seed from THIS entry's own period so the first paint is never wrong for non-default periods.
   const [progress, setProgress] = useState(() => getProgress(entry?.period))
   const [seconds, setSeconds] = useState(() => getSecondsRemaining(entry?.period))
-  const [showLocal, setShowLocal] = useState(true)
+  const defaultShow = useSettingsStore(s => s.showOtp)
+  const [showLocal, setShowLocal] = useState(defaultShow)
   const [confirmDel, setConfirmDel] = useState(false)
 
   const refresh = useCallback(async (e?: OtpEntry) => {

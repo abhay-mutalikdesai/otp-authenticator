@@ -18,6 +18,7 @@ function toAppSettings(s: SettingsState): AppSettings {
     showOtp: s.showOtp,
     autoLockMinutes: s.autoLockMinutes,
     mpReminderSnoozeUntil: s.mpReminderSnoozeUntil,
+    windowMode: s.windowMode ?? false,
   }
 }
 

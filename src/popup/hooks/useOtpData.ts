@@ -9,7 +9,11 @@ interface OtpDataResult {
   refreshOne: (entry: OtpEntry) => Promise<string>
 }
 
-/** Drives live OTP codes and countdown/counter states. Each entry computes independently. */
+/**
+ * Custom hook to drive live OTP code generation and progress bars.
+ * It periodically recalculates time remaining and triggers regeneration of TOTP codes
+ * only for entries that have rolled over, minimizing unnecessary cryptographic work.
+ */
 export function useOtpData(entries: OtpEntry[]): OtpDataResult {
   const [otpMap, setOtpMap] = useState<Record<string, string>>({})
   const [progressMap, setProgressMap] = useState<Record<string, number>>({})

@@ -23,7 +23,7 @@ export function About() {
             ['Crypto', 'Web Crypto API'],
             ['Security', 'SHA-256 master password'],
             ['Source code', (
-              <a href={REPO_URL} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text)', textDecoration: 'none' }}>
+              <a key="source-code" href={REPO_URL} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--c-text)', textDecoration: 'none' }}>
                 GitHub <Icons.ExternalLink size={14} />
               </a>
             )],

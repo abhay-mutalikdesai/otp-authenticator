@@ -23,6 +23,10 @@
       },
       "path": {
         "all": true
+      },
+      "window": {
+        "startDragging": true,
+        "setAlwaysOnTop": true
       }
     },
     "systemTray": {

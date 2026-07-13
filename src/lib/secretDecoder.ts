@@ -3,7 +3,7 @@ import type { Encoding } from '../types'
 /** Base32 alphabet (RFC 4648) */
 const BASE32_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
 
-export function decodeBase32(input: string): Uint8Array {
+function decodeBase32(input: string): Uint8Array {
   const str = input.toUpperCase().replace(/=+$/, '').replace(/\s/g, '')
   const bytes: number[] = []
   let bits = 0
@@ -21,13 +21,13 @@ export function decodeBase32(input: string): Uint8Array {
   return new Uint8Array(bytes)
 }
 
-export function decodeBase64(input: string): Uint8Array {
+function decodeBase64(input: string): Uint8Array {
   const str = input.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, '')
   const binary = atob(str)
   return new Uint8Array([...binary].map(c => c.charCodeAt(0)))
 }
 
-export function decodeHex(input: string): Uint8Array {
+function decodeHex(input: string): Uint8Array {
   const str = input.replace(/\s/g, '')
   const bytes: number[] = []
   for (let i = 0; i < str.length; i += 2) {

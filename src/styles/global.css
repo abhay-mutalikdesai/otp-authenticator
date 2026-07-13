@@ -67,6 +67,10 @@ body {
   border-radius: 0;
 }
 
+:root:not([data-theme="dark"]) .app-frame {
+  border: 1.5px solid #000000;
+}
+
 /* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }

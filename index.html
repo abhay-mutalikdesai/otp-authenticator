@@ -10,6 +10,12 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Suppress Tauri warning in browser/extension context
+      if (!window.__TAURI_IPC__) {
+        window.__TAURI_METADATA__ = { __currentWindow: 'main' };
+      }
+    </script>
     <script type="module" src="/src/popup/main.tsx"></script>
   </body>
 </html>

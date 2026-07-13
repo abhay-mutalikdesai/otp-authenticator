@@ -1,3 +1,8 @@
+/**
+ * Zustand store for managing OTP entries.
+ * Handles state persistence to local storage, CRUD operations, ordering, and selection logic.
+ * The state is hydrated on startup via `loadFromStorage`.
+ */
 import { create } from 'zustand'
 import type { OtpEntry } from '../types'
 import { clearEntries, loadEntries, saveEntries } from '../lib/storage'

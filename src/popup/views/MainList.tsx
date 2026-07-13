@@ -32,6 +32,7 @@ export function MainList({ onLock }: { onLock?: () => void }) {
   })))
   const showOtp = useSettingsStore(s => s.showOtp)
   const updateSetting = useSettingsStore(s => s.updateSetting)
+  const windowMode = useSettingsStore(s => s.windowMode)
   const hasMasterPw = useAuthStore(s => s.hasMasterPassword)
   const { show } = useToast()
 
@@ -81,7 +82,7 @@ export function MainList({ onLock }: { onLock?: () => void }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', height: 52, padding: '0 4px', background: 'var(--c-surface)', borderBottom: '1px solid var(--c-border)', flexShrink: 0, position: 'relative', zIndex: 10 }}>
+      <div {...(windowMode ? { 'data-app-drag-region': true } : {})} style={{ display: 'flex', alignItems: 'center', height: 52, padding: '0 4px', background: 'var(--c-surface)', borderBottom: '1px solid var(--c-border)', flexShrink: 0, position: 'relative', zIndex: 10, cursor: windowMode ? 'move' : 'default' }}>
         {selectMode ? (
           <>
             <IconBtn onClick={() => { setSelectMode(false); clearSelection() }}><Icons.Close size={19} /></IconBtn>

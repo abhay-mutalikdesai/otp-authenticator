@@ -22,16 +22,23 @@ export function Settings() {
   const [confirmDeleteAccts, setConfirmDeleteAccts] = useState(false)
   const [confirmResetSettings, setConfirmResetSettings] = useState(false)
 
+const isDesktop = typeof window !== 'undefined' && '__TAURI_IPC__' in window
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }} className="anim-slide-right">
       <Header title="Settings" onBack={goBack} />
       <div style={{ flex: 1, overflowY: 'auto', padding: '0 11px 20px' }}>
 
-        <SectionLabel text="Appearance" />
+        <SectionLabel text="Display" />
         <SectionCard>
-          <SRow label="Theme" border={false}>
+          <SRow label="Theme" border={isDesktop}>
             <MiniSelect value={s.theme} onChange={v => s.updateSetting('theme', v as never)} opts={[{ value: 'system', label: 'System' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }]} />
           </SRow>
+          {isDesktop && (
+            <SRow label="Window mode" border={false}>
+              <MiniSelect value={String(!!s.windowMode)} onChange={v => s.updateSetting('windowMode', v === 'true' as never)} opts={[{ value: 'false', label: 'Static' }, { value: 'true', label: 'Draggable' }]} />
+            </SRow>
+          )}
         </SectionCard>
 
         <SectionLabel text="New Account Defaults" />

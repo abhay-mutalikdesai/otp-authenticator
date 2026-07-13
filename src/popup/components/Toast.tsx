@@ -3,6 +3,7 @@ import { createContext, ReactNode, useCallback, useContext, useRef, useState } f
 export interface Toast { id: number; msg: string; type: 'success' | 'error' | 'info' }
 
 const ToastCtx = createContext<{ show: (msg: string, type?: Toast['type']) => void }>({ show: () => { } })
+// eslint-disable-next-line react-refresh/only-export-components
 export const useToast = () => useContext(ToastCtx)
 
 const TOAST_COLORS: Record<Toast['type'], string> = { success: '#10B981', error: '#EF4444', info: '#6366F1' }

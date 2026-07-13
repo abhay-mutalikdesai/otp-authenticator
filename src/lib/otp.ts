@@ -1,5 +1,6 @@
 /**
- * OTP Engine — TOTP (RFC 6238) + HOTP (RFC 4226)
+ * Core OTP Engine implementing TOTP (RFC 6238) and HOTP (RFC 4226).
+ * Handles all cryptographic operations using the Web Crypto API.
  */
 import type { Algorithm, Encoding, OtpEntry, ValidationResult } from '../types'
 import { hmac } from './cryptoUtils'
@@ -26,9 +27,11 @@ interface TotpOptions extends HotpOptions {
 }
 
 /**
- * Core HOTP generation (RFC 4226)
+ * Generates an HOTP code (HMAC-based One-Time Password) per RFC 4226.
+ * It computes an HMAC over an 8-byte counter using the decoded secret,
+ * truncates the hash, and returns the numeric code formatted to `digits`.
  */
-export async function generateHOTP(
+async function generateHOTP(
   secretBytes: Uint8Array,
   counter: number,
   { algorithm = 'SHA1', digits = 6 }: HotpOptions = {}
@@ -48,9 +51,11 @@ export async function generateHOTP(
 }
 
 /**
- * TOTP generation (RFC 6238)
+ * Generates a TOTP code (Time-based One-Time Password) per RFC 6238.
+ * Calculates the time-step counter `T` from the current time and period,
+ * then passes it to `generateHOTP`.
  */
-export async function generateTOTP(
+async function generateTOTP(
   secretBytes: Uint8Array,
   { algorithm = 'SHA1', digits = 6, period = 30 }: TotpOptions = {}
 ): Promise<string> {
@@ -89,7 +94,8 @@ export function getProgress(period = 30): number {
 }
 
 /**
- * Validate that a secret can be decoded and preview OTP
+ * Validates a newly entered secret by attempting to decode it and generating a preview code.
+ * Returns the preview OTP if successful, or an error message if the secret is malformed.
  */
 export async function validateAndPreview(
   secret: string,

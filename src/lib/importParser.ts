@@ -6,7 +6,7 @@
 import type { Algorithm, Encoding, OtpEntry } from '../types'
 import { parseOtpauthUri } from './otpauthUri'
 
-export type ParsedImportEntry = Omit<OtpEntry, 'id' | 'favourite' | 'order' | 'createdAt'>
+type ParsedImportEntry = Omit<OtpEntry, 'id' | 'favourite' | 'order' | 'createdAt'>
 
 export interface ParsedImport {
   entries: ParsedImportEntry[]

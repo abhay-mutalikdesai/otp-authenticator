@@ -32,6 +32,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   showOtp: false,
   autoLockMinutes: 5,
   mpReminderSnoozeUntil: 0,
+  windowMode: false,
 }
 
 

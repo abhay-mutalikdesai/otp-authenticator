@@ -48,4 +48,3 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
     set({ view: saved.view, params: saved.params, history: saved.history })
   },
 }))
-export default useNavigationStore;

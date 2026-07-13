@@ -11,6 +11,7 @@ A fully-featured, **no-account, no-server** OTP Authenticator built with React +
 ## ✨ Key Features
 
 - **Core OTP**: Supports TOTP (RFC 6238) and HOTP (RFC 4226) with multiple secret encodings (Base32, Base64, HEX).
+- **Easy Import**: Import accounts using an otpauth URI, by manually entering the secret, or by uploading/pasting a QR code image.
 - **Cross-Platform**: Runs natively as a Windows desktop application (via Tauri) and as a Chrome/Edge Browser Extension.
 - **Data Persistence**:
   - *Desktop*: Saves data securely to your native OS AppData directory.
@@ -57,6 +58,7 @@ npm run tauri build  # Compile the final .exe and .msi installers locally
 ### 📦 Releases & Deployment
 
 Automated builds are created via GitHub Actions on new version tags (`v*`) and uploaded to GitHub Releases.
+You can also manually build the installers at any time by triggering the **"Build Installers"** workflow from the GitHub Actions tab. You will be prompted to enter the desired app version manually before the build starts.
 
 **Browser Extension**
 1. Download `otp-authenticator-browser-extension.zip` from the latest release and extract it.
@@ -73,8 +75,8 @@ Automated builds are created via GitHub Actions on new version tags (`v*`) and u
 
 ## 🔐 Security Notes
 - **Local Only**: Nothing is ever sent to a server. 
-- **Plain-text Secrets**: Secrets are stored in plain text locally (standard for authenticator apps; matches Google Authenticator behaviour).
-- **Permissions**: The extension requires only `storage` and `clipboardWrite` permissions.
+- **Plain-text Secrets**: Secrets are stored in plain text locally to allow the user to back up and restore their accounts.
+- **Permissions**: The extension requires only `storage`, `clipboardWrite`, and `clipboardRead` permissions.
 
 ---
 

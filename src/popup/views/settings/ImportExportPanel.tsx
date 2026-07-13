@@ -4,6 +4,7 @@ import { buildOtpauthUri } from '../../../lib/otpauthUri'
 import { parseImportText } from '../../../lib/importParser'
 import { useToast } from '../../components/Toast'
 import { Icons } from '../../components/Icons'
+import { invoke } from '@tauri-apps/api/tauri'
 
 export function ImportExportPanel({ hasAccounts = true }: { hasAccounts?: boolean }) {
   const { entries, addEntry } = useEntriesStore()
@@ -44,9 +45,8 @@ export function ImportExportPanel({ hasAccounts = true }: { hasAccounts?: boolea
     // @ts-ignore
     if (window.__TAURI_IPC__) {
       try {
-        const { invoke } = await import('@tauri-apps/api/tauri')
         await invoke('set_ignore_blur', { ignore: true })
-      } catch (e) { /* ignore */ }
+      } catch { /* ignore */ }
     }
     fileRef.current?.click()
   }

@@ -10,6 +10,8 @@ import { detectEncoding } from '../../lib/secretDecoder'
 import { getSessionValue, removeSessionValue, setSessionValue, SESSION_KEYS, type DraftSession } from '../../lib/sessionState'
 import { useToast } from '../components/Toast'
 import { Header, Field, PwInput, TextInput, FSelect } from '../components/primitives'
+import { Icons } from '../components/Icons'
+import jsQR from 'jsqr'
 
 const UNPROTECTED_DRAFT_MAX_AGE_MS = 5 * 60 * 1000
 
@@ -98,6 +100,69 @@ export function AddEditEntry() {
     } catch (e) { setUriErr((e as Error).message) }
   }
 
+  const decodeQR = async (file: File | Blob) => {
+    try {
+      const url = URL.createObjectURL(file)
+      const img = new Image()
+      img.src = url
+      await new Promise((resolve, reject) => {
+        img.onload = resolve
+        img.onerror = reject
+      })
+      URL.revokeObjectURL(url)
+
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')
+      if (!ctx) throw new Error('Failed to get canvas context')
+      ctx.drawImage(img, 0, 0)
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      const code = jsQR(imageData.data, imageData.width, imageData.height)
+
+      if (code) {
+        setUri(code.data)
+        try {
+          const p = parseOtpauthUri(code.data.trim())
+          setType(p.type); setIssuer(p.issuer); setAccount(p.account)
+          setSecret(p.secret); setAlgorithm(p.algorithm); setDigits(String(p.digits))
+          setPeriod(String(p.period)); setCounter(String(p.counter)); setEncoding('base32'); setUriErr('')
+          show('QR Code parsed successfully', 'success')
+        } catch (e) {
+          setUriErr((e as Error).message)
+        }
+      } else {
+        setUriErr('No QR code found in the image.')
+      }
+    } catch {
+      setUriErr('Failed to read image.')
+    }
+  }
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) void decodeQR(file)
+    e.target.value = ''
+  }
+
+  const handlePaste = async () => {
+    try {
+      const items = await navigator.clipboard.read()
+      for (const item of items) {
+        for (const type of item.types) {
+          if (type.startsWith('image/')) {
+            const blob = await item.getType(type)
+            await decodeQR(blob)
+            return
+          }
+        }
+      }
+      setUriErr('No image found in clipboard.')
+    } catch {
+      setUriErr('Failed to read clipboard. Please allow clipboard permissions or paste directly into the text field.')
+    }
+  }
+
   const save = async () => {
     const e: Record<string, string> = {}
     if (!account.trim()) e.account = 'Required'
@@ -129,15 +194,26 @@ export function AddEditEntry() {
 
         {!isEdit && (
           <div style={{ background: 'var(--c-surface2)', borderRadius: 10, padding: '10px 12px', marginBottom: 13, border: '1px solid var(--c-border)' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text2)', marginBottom: 7, textTransform: 'uppercase', letterSpacing: '.05em' }}>Import from URI</p>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <input value={uri} onChange={e => setUri(e.target.value)} placeholder="otpauth://totp/..."
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text2)', marginBottom: 7, textTransform: 'uppercase', letterSpacing: '.05em' }}>Import Account</p>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+              <input type="password" value={uri} onChange={e => setUri(e.target.value)} placeholder="otpauth://totp/..."
                 style={{ flex: 1, padding: '8px 10px', border: '1.5px solid var(--c-border)', borderRadius: 7, background: 'var(--c-surface)', color: 'var(--c-text)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
                 onFocus={e => (e.currentTarget.style.borderColor = 'var(--c-primary)')}
                 onBlur={e => (e.currentTarget.style.borderColor = 'var(--c-border)')} />
               <button onClick={parseUri} style={{ padding: '8px 13px', borderRadius: 7, background: 'var(--c-primary)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', border: 'none', whiteSpace: 'nowrap' }}>Parse</button>
             </div>
-            {uriErr && <p style={{ color: 'var(--c-danger)', fontSize: 12, marginTop: 4 }}>{uriErr}</p>}
+            <div style={{ display: 'flex', gap: 6 }}>
+              <label style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', borderRadius: 7, background: 'var(--c-surface)', border: '1.5px solid var(--c-border)', color: 'var(--c-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                <Icons.Upload size={16} />
+                Upload QR
+                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
+              </label>
+              <button onClick={handlePaste} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', borderRadius: 7, background: 'var(--c-surface)', border: '1.5px solid var(--c-border)', color: 'var(--c-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                <Icons.Clipboard size={16} />
+                Paste QR
+              </button>
+            </div>
+            {uriErr && <p style={{ color: 'var(--c-danger)', fontSize: 12, marginTop: 6, textAlign: 'center' }}>{uriErr}</p>}
           </div>
         )}
 

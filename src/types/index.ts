@@ -5,7 +5,7 @@
 export type OtpType = 'totp' | 'hotp'
 export type Algorithm = 'SHA1' | 'SHA256' | 'SHA512'
 export type Encoding = 'auto' | 'base32' | 'base64' | 'hex'
-export type Theme = 'light' | 'dark' | 'system'
+type Theme = 'light' | 'dark' | 'system'
 
 export interface OtpEntry {
   id: string
@@ -34,13 +34,10 @@ export interface AppSettings {
   // sets a short snooze; "Don't show again" sets a long (but bounded) one — bounded so the
   // security reminder can never get silenced forever with no way back.
   mpReminderSnoozeUntil: number
+  windowMode?: boolean
 }
 
-export interface OtpData {
-  code: string
-  secondsLeft: number
-  progress: number
-}
+
 
 export interface ValidationResult {
   valid: boolean

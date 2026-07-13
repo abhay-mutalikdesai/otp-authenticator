@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useRef, useState } from 'react'
+import useSettingsStore from '../../store/settingsStore'
 import { Icons } from './Icons'
 
 // ─── Buttons & menus ────────────────────────────────────────────────────────
@@ -39,10 +40,11 @@ export function DropMenu({ items, onClose }: {
 }
 
 export function Header({ title, onBack, right }: { title: string; onBack?: () => void; right?: ReactNode }) {
+  const windowMode = useSettingsStore(s => s.windowMode)
   return (
-    <div style={{ display: 'flex', alignItems: 'center', height: 52, padding: '0 6px', background: 'var(--c-surface)', borderBottom: '1px solid var(--c-border)', flexShrink: 0, gap: 2, zIndex: 10, position: 'relative' }}>
+    <div {...(windowMode ? { 'data-app-drag-region': true } : {})} style={{ display: 'flex', alignItems: 'center', height: 52, padding: '0 6px', background: 'var(--c-surface)', borderBottom: '1px solid var(--c-border)', flexShrink: 0, gap: 2, zIndex: 10, position: 'relative', cursor: windowMode ? 'move' : 'default' }}>
       {onBack && <IconBtn onClick={() => onBack()}><Icons.Back size={20} /></IconBtn>}
-      <span style={{ flex: 1, fontWeight: 700, fontSize: 15, marginLeft: onBack ? 4 : 8 }}>{title}</span>
+      <span style={{ flex: 1, fontWeight: 700, fontSize: 15, marginLeft: onBack ? 4 : 8, userSelect: 'none', pointerEvents: 'none' }}>{title}</span>
       {right}
     </div>
   )
