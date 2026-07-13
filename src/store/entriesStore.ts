@@ -101,14 +101,14 @@ const useEntriesStore = create<EntriesState>((set, get) => ({
     const entries = get().entries
     const target = entries.find((e) => e.id === id)
     if (!target) return
-    // Reorder within the same type group only
+    // Reorder within the same type group.
     const sameType = [...entries.filter((e) => e.type === target.type)].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     const idx = sameType.findIndex((e) => e.id === id)
     if (idx <= 0) return
-    // Move to front within same-type group
+    // Move to front of same-type group.
     const reorderedSameType = [sameType[idx], ...sameType.slice(0, idx), ...sameType.slice(idx + 1)]
     const otherType = entries.filter((e) => e.type !== target.type).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    // Reassign orders: same-type first (0..n-1), then other-type (n..m)
+    // Reassign orders: same-type first, then other-type.
     const sameWithOrder = reorderedSameType.map((e, i) => ({ ...e, order: i }))
     const otherWithOrder = otherType.map((e, i) => ({ ...e, order: sameWithOrder.length + i }))
     await get().reorderEntries([...sameWithOrder, ...otherWithOrder])

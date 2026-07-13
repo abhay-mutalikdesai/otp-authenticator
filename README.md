@@ -2,6 +2,8 @@
 
 > Just tokens, no tracking. A secure TOTP and HOTP authenticator for the privacy conscious.
 
+**Disclaimer:** This app is AI generated and vibe coded.
+
 A fully-featured, **no-account, no-server** OTP Authenticator built with React + Vite. It runs as both a **Browser Extension** and a **Standalone Desktop App (Tauri)**. All data stays strictly local on your device.
 
 ---

@@ -12,9 +12,7 @@ interface NavigationState {
   history: HistoryEntry[]
   navigate: (view: View, params?: Record<string, any>) => void
   goBack: () => void
-  /** Restores the last-known screen from a previous popup session (before the popup was
-   * closed by clicking outside it). `maxAgeMs` caps how stale that state may be — pass
-   * `null` for no cap (master password enabled: state lives until locked/browser close). */
+  /** Restores the last-known screen from a previous session. */
   hydrate: (maxAgeMs: number | null) => Promise<void>
 }
 

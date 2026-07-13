@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useShallow } from 'zustand/react/shallow'
 import useEntriesStore from '../../store/entriesStore'
 import useSettingsStore from '../../store/settingsStore'
 import useAuthStore from '../../store/authStore'
@@ -22,7 +23,13 @@ export function MainList({ onLock }: { onLock?: () => void }) {
     toggleFavourite, moveToTop, deleteEntry, incrementCounter,
     searchQuery, setSearchQuery, favouriteFilter, setFavouriteFilter,
     getFilteredEntries,
-  } = useEntriesStore()
+  } = useEntriesStore(useShallow(s => ({
+    entries: s.entries, loadFromStorage: s.loadFromStorage, loaded: s.loaded,
+    selectMode: s.selectMode, selectedIds: s.selectedIds, setSelectMode: s.setSelectMode, toggleSelect: s.toggleSelect, selectAll: s.selectAll, clearSelection: s.clearSelection, deleteMany: s.deleteMany,
+    toggleFavourite: s.toggleFavourite, moveToTop: s.moveToTop, deleteEntry: s.deleteEntry, incrementCounter: s.incrementCounter,
+    searchQuery: s.searchQuery, setSearchQuery: s.setSearchQuery, favouriteFilter: s.favouriteFilter, setFavouriteFilter: s.setFavouriteFilter,
+    getFilteredEntries: s.getFilteredEntries,
+  })))
   const showOtp = useSettingsStore(s => s.showOtp)
   const updateSetting = useSettingsStore(s => s.updateSetting)
   const hasMasterPw = useAuthStore(s => s.hasMasterPassword)

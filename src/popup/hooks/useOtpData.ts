@@ -9,12 +9,7 @@ interface OtpDataResult {
   refreshOne: (entry: OtpEntry) => Promise<string>
 }
 
-/**
- * Drives the live OTP code plus the per-entry countdown (TOTP) / counter (HOTP) display for a
- * list of entries. Every value is keyed by `entry.id`, so each card reflects ONLY its own
- * period — entries never influence each other's displayed status (e.g. a 30s and a 60s TOTP
- * account shown together each count down independently and correctly).
- */
+/** Drives live OTP codes and countdown/counter states. Each entry computes independently. */
 export function useOtpData(entries: OtpEntry[]): OtpDataResult {
   const [otpMap, setOtpMap] = useState<Record<string, string>>({})
   const [progressMap, setProgressMap] = useState<Record<string, number>>({})
@@ -37,11 +32,10 @@ export function useOtpData(entries: OtpEntry[]): OtpDataResult {
 
   const entryIds = entries.map((e) => e.id).join(',')
 
-  // (Re)generate codes whenever the visible entry set changes (add/remove/tab switch).
+  // Regenerate codes when visible entries change.
   useEffect(() => { generateFor(entriesRef.current) }, [generateFor, entryIds])
 
-  // Compute progress/seconds synchronously whenever the entry set changes so the very first
-  // paint already shows each entry's correct period-relative status (no waiting on the tick).
+  // Compute initial progress synchronously for first paint.
   useEffect(() => {
     const pm: Record<string, number> = {}
     const sm: Record<string, number> = {}
@@ -68,8 +62,7 @@ export function useOtpData(entries: OtpEntry[]): OtpDataResult {
         const s = getSecondsRemaining(period)
         pm[e.id] = getProgress(period)
         sm[e.id] = s
-        // Only regenerate the code for entries that just rolled into a new period — not
-        // the whole list — since every other entry's code is still valid.
+        // Regenerate code only for rolled-over entries.
         if (s === period) rolledOver.push(e)
       }
       setProgressMap(pm)

@@ -30,8 +30,7 @@ interface AuthState {
   changePassword: (current: string, next: string) => Promise<boolean>
   removePassword: (current: string) => Promise<boolean>
   lock: () => void
-  /** Refreshes the session's "last active" timestamp so elapsed idle time is measured
-   * correctly even if the popup gets closed and reopened before the auto-lock timer fires. */
+  /** Refreshes session timestamp to measure idle time. */
   touchSession: () => void
 }
 
@@ -87,8 +86,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
     await saveMasterPasswordHash(null)
     set({ hasMasterPassword: false, locked: false })
     await removeSessionValue(SESSION_KEYS.auth)
-    // Protection was just turned off — surface the "set a master password" nudge again
-    // even if it was previously snoozed/dismissed while a password was still set.
+    // Prompt master password setup again if protection is disabled.
     await useSettingsStore.getState().updateSetting('mpReminderSnoozeUntil', 0)
     return true
   },

@@ -20,6 +20,13 @@ jobs:
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Update versions from tag
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          (Get-Content package.json) -replace '"version": "[^"]+"', "`"version`": `"$version`"" | Set-Content package.json
+          (Get-Content src-tauri\tauri.conf.json) -replace '"version": "[^"]+"', "`"version`": `"$version`"" | Set-Content src-tauri\tauri.conf.json
+          (Get-Content public\manifest.json) -replace '"version": "[^"]+"', "`"version`": `"$version`"" | Set-Content public\manifest.json
+
       - name: install frontend dependencies
         run: npm install
 
@@ -27,7 +34,7 @@ jobs:
         run: npm run build
 
       - name: Zip Extension (Windows)
-        run: Compress-Archive -Path dist\* -DestinationPath otp-authenticator-extension.zip
+        run: Compress-Archive -Path dist\* -DestinationPath browser-extension.zip
 
       - name: Build Desktop App
         uses: tauri-apps/tauri-action@v0
@@ -41,7 +48,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            otp-authenticator-extension.zip
+            browser-extension.zip
             otp-authenticator-windows-exe.zip
             otp-authenticator-windows-msi.zip
           draft: true

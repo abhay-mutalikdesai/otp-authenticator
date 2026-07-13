@@ -13,12 +13,7 @@ import { Header, Field, PwInput, TextInput, FSelect } from '../components/primit
 
 const UNPROTECTED_DRAFT_MAX_AGE_MS = 5 * 60 * 1000
 
-/**
- * - Edit mode hides the Type selector (type is fixed for existing accounts)
- * - Advanced HOTP options: only "Initial counter"
- * - Digits: 4, 6, 8 only
- * - Save button is sticky at the bottom
- */
+/** Add or edit an OTP entry. Handles parsing URIs, drafts, and validation. */
 export function AddEditEntry() {
   const { view, params, goBack } = useNavigationStore()
   const { entries, addEntry, updateEntry } = useEntriesStore()
@@ -32,10 +27,7 @@ export function AddEditEntry() {
   const [issuer, setIssuer] = useState(ex?.issuer ?? '')
   const [account, setAccount] = useState(ex?.account ?? '')
   const [secret, setSecret] = useState(ex?.secret ?? '')
-  // New accounts default to Auto-detect (simplest for pasting whatever a provider gives you).
-  // Existing entries never show "Auto-detect" as the current encoding — it's resolved to the
-  // concrete encoding actually used. The user can still pick Auto-detect manually if they're
-  // about to replace the secret and want it re-detected.
+  // New accounts default to Auto-detect encoding. Existing entries resolve to their concrete encoding.
   const [encoding, setEncoding] = useState<Encoding>(() => {
     if (!ex) return 'auto'
     return ex.encoding === 'auto' ? detectEncoding(ex.secret) : ex.encoding
@@ -53,8 +45,7 @@ export function AddEditEntry() {
   const [errs, setErrs] = useState<Record<string, string>>({})
   const draftRestored = useRef(false)
 
-  // Restore an in-progress draft left over from before the popup was closed (e.g. the user
-  // clicked outside the extension mid-edit). Only restores if it matches this exact screen.
+  // Restore draft state left over from before the popup closed.
   useEffect(() => {
     (async () => {
       const draft = await getSessionValue<DraftSession>(SESSION_KEYS.draft)
@@ -77,7 +68,7 @@ export function AddEditEntry() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Persist the in-progress form (debounced) so it survives the popup being closed/reopened.
+  // Persist draft state (debounced) so it survives popup closures.
   useEffect(() => {
     if (!draftRestored.current) return
     const t = setTimeout(() => {

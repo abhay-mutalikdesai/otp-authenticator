@@ -13,8 +13,7 @@ export function ImportExportPanel({ hasAccounts = true }: { hasAccounts?: boolea
   const [importing, setImporting] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  // Parsed live from the current text — drives both the inline validation message AND
-  // whether the Import button is enabled, so it can never be clicked with invalid/empty input.
+  // Parsed text state drives inline validation and Import button state.
   const parsed = useMemo(() => parseImportText(text), [text])
   const canImport = !importing && parsed.entries.length > 0 && !parsed.error
 
@@ -38,7 +37,18 @@ export function ImportExportPanel({ hasAccounts = true }: { hasAccounts?: boolea
       setText(content)
       show('File loaded — review and click Import', 'info')
     } catch { show('Could not read file', 'error') }
-    e.target.value = ''  // allow re-selecting same file
+    e.target.value = ''  // Allow re-selecting same file
+  }
+
+  const handleUploadClick = async () => {
+    // @ts-ignore
+    if (window.__TAURI_IPC__) {
+      try {
+        const { invoke } = await import('@tauri-apps/api/tauri')
+        await invoke('set_ignore_blur', { ignore: true })
+      } catch (e) { /* ignore */ }
+    }
+    fileRef.current?.click()
   }
 
   const doImport = async () => {
@@ -80,7 +90,7 @@ export function ImportExportPanel({ hasAccounts = true }: { hasAccounts?: boolea
       ) : (
         <>
           <input ref={fileRef} type="file" accept=".json,.txt" onChange={handleFileUpload} style={{ display: 'none' }} />
-          <button onClick={() => fileRef.current?.click()}
+          <button onClick={handleUploadClick}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%', padding: '10px', borderRadius: 8, background: 'var(--c-surface)', color: 'var(--c-text)', fontWeight: 600, fontSize: 13, border: '1.5px dashed var(--c-border)', cursor: 'pointer', marginBottom: 8 }}>
             <Icons.Upload size={15} /> Upload JSON or text file
           </button>

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, memo } from 'react'
 import type { OtpEntry } from '../../types'
 import { Avatar } from './Avatar'
 import { CounterRing, ProgressRing } from './Rings'
@@ -14,7 +14,7 @@ export interface AccountCardProps {
 }
 
 /** Clicking the card copies the OTP. "View" lives in the 3-dot menu. */
-export function AccountCard({ entry, otp, progress, seconds, showOtp, selected, selectMode, onSelect, onCopy, onShowDetail, onFav, onEdit, onDelete, onMoveTop, onIncrement }: AccountCardProps) {
+export const AccountCard = memo(function AccountCard({ entry, otp, progress, seconds, showOtp, selected, selectMode, onSelect, onCopy, onShowDetail, onFav, onEdit, onDelete, onMoveTop, onIncrement }: AccountCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuJustClosedRef = useRef(false)
   const longRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -93,4 +93,12 @@ export function AccountCard({ entry, otp, progress, seconds, showOtp, selected, 
       )}
     </div>
   )
-}
+}, (prev, next) => {
+  return prev.entry === next.entry &&
+    prev.otp === next.otp &&
+    prev.progress === next.progress &&
+    prev.seconds === next.seconds &&
+    prev.showOtp === next.showOtp &&
+    prev.selected === next.selected &&
+    prev.selectMode === next.selectMode
+})

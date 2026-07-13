@@ -14,15 +14,10 @@ import { Settings } from './views/settings/Settings'
 import { About } from './views/About'
 import { MasterPasswordPrompt } from './components/MasterPasswordPrompt'
 
-/** No-restore window for in-progress screen/form state when no master password is set —
- * there's no lock to bound its lifetime otherwise, so cap it short. */
+/** Max age for restoring draft form state without master password. */
 const UNPROTECTED_SESSION_MAX_AGE_MS = 5 * 60 * 1000
 
-/**
- * Composition root — owns app-wide concerns only (data loading, theme, auto-lock, routing).
- * All view/UI logic lives in ./views and ./components; all persistence & OTP/auth logic in
- * ../store and ../lib. This file intentionally does very little on its own.
- */
+/** Composition root. Owns app-wide concerns (data loading, theme, auto-lock, routing). */
 export default function App() {
   const loadFromStorage = useEntriesStore(s => s.loadFromStorage)
   const loadSettings = useSettingsStore(s => s.loadSettings)
@@ -30,7 +25,8 @@ export default function App() {
   const theme = useSettingsStore(s => s.theme)
   const autoLockMinutes = useSettingsStore(s => s.autoLockMinutes)
   const mpReminderSnoozeUntil = useSettingsStore(s => s.mpReminderSnoozeUntil)
-  const { view, hydrate: hydrateNavigation } = useNavigationStore()
+  const view = useNavigationStore(s => s.view)
+  const hydrateNavigation = useNavigationStore(s => s.hydrate)
 
   const checked = useAuthStore(s => s.checked)
   const locked = useAuthStore(s => s.locked)
@@ -46,8 +42,7 @@ export default function App() {
       await loadSettings()
       loadFromStorage()
       await checkAuth(useSettingsStore.getState().autoLockMinutes)
-      // Restore the last screen/in-progress form only once we know the app is actually
-      // unlocked — otherwise a closed popup reopening while locked would briefly reveal it.
+      // Restore draft state only if unlocked.
       if (!useAuthStore.getState().locked) {
         const maxAgeMs = useAuthStore.getState().hasMasterPassword ? null : UNPROTECTED_SESSION_MAX_AGE_MS
         await hydrateNavigation(maxAgeMs)
@@ -68,9 +63,7 @@ export default function App() {
     return () => mq.removeEventListener('change', fn)
   }, [theme])
 
-  // Auto-lock timer — reset on any interaction, lock after configured idle time. Also
-  // refreshes the session's last-active timestamp so elapsed idle time is measured
-  // correctly even if the popup is closed and reopened before the timer fires.
+  // Auto-lock timer: reset on interaction, lock after idle. Refreshes session timestamp.
   const resetLockTimer = useCallback(() => {
     if (lockTimerRef.current) clearTimeout(lockTimerRef.current)
     if (hasMasterPassword && !locked) {
@@ -98,7 +91,7 @@ export default function App() {
     }
   }
 
-  // Only shown on the main list — otherwise it would immediately re-cover the Settings
+  // Show prompt only on main list.
   const showMpPrompt = view === 'list' && checked && !locked && settingsLoaded && !hasMasterPassword
     && Date.now() > mpReminderSnoozeUntil
 
