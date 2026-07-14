@@ -4,7 +4,7 @@ import { Avatar } from './Avatar'
 import { CounterRing, ProgressRing } from './Rings'
 import { OtpCode } from './OtpCode'
 import { Icons } from './Icons'
-import { DropMenu } from './primitives'
+import { DropMenu, Tooltip } from './primitives'
 
 export interface AccountCardProps {
   entry: OtpEntry; otp: string; progress: number; seconds: number; showOtp: boolean
@@ -49,11 +49,12 @@ export const AccountCard = memo(function AccountCard({ entry, otp, progress, sec
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <OtpCode code={otp} hidden={!showOtp} />
           {entry.type === 'hotp' && !selectMode && (
-            <button onClick={e => { e.stopPropagation(); onIncrement() }}
-              title="Next OTP"
-              style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px solid var(--c-border)', background: 'var(--c-surface2)', color: 'var(--c-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-              <Icons.Refresh size={13} />
-            </button>
+            <Tooltip text="Next OTP">
+              <button onClick={e => { e.stopPropagation(); onIncrement() }}
+                style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px solid var(--c-border)', background: 'var(--c-surface2)', color: 'var(--c-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+                <Icons.Refresh size={13} />
+              </button>
+            </Tooltip>
           )}
         </div>
       </div>
@@ -62,23 +63,26 @@ export const AccountCard = memo(function AccountCard({ entry, otp, progress, sec
       {!selectMode && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, position: 'relative' }}>
           {entry.favourite && (
-            <button onClick={e => { e.stopPropagation(); onFav() }} title="Unfavourite"
-              style={{ width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, color: '#F59E0B' }}>
-              <Icons.Star size={14} filled />
-            </button>
+            <Tooltip text="Unfavourite">
+              <button onClick={e => { e.stopPropagation(); onFav() }}
+                style={{ width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, color: '#F59E0B' }}>
+                <Icons.Star size={14} filled />
+              </button>
+            </Tooltip>
           )}
           {entry.type === 'totp' && <ProgressRing progress={progress} seconds={seconds} size={34} />}
           {entry.type === 'hotp' && <CounterRing counter={entry.counter} size={34} />}
-          <button
-            onClick={e => { e.stopPropagation(); if (menuOpen) { handleMenuClose() } else { setMenuOpen(true) } }}
-            title="More"
-            style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text3)', position: 'relative', zIndex: 1 }}
-            onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--c-border)')}
-            onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'transparent')}>
-            <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" style={{ display: 'block', pointerEvents: 'none' }}>
-              <circle cx="12" cy="5" r="2.2" /><circle cx="12" cy="12" r="2.2" /><circle cx="12" cy="19" r="2.2" />
-            </svg>
-          </button>
+          <Tooltip text="More">
+            <button
+              onClick={e => { e.stopPropagation(); if (menuOpen) { handleMenuClose() } else { setMenuOpen(true) } }}
+              style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text3)', position: 'relative', zIndex: 1 }}
+              onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--c-border)')}
+              onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'transparent')}>
+              <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" style={{ display: 'block', pointerEvents: 'none' }}>
+                <circle cx="12" cy="5" r="2.2" /><circle cx="12" cy="12" r="2.2" /><circle cx="12" cy="19" r="2.2" />
+              </svg>
+            </button>
+          </Tooltip>
           {menuOpen && (
             <DropMenu onClose={handleMenuClose} items={[
               { icon: <Icons.Eye size={15} />, label: 'View', action: onShowDetail },

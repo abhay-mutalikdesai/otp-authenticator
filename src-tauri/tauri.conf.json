@@ -90,7 +90,8 @@
         "visible": false,
         "skipTaskbar": true,
         "transparent": true,
-        "alwaysOnTop": true
+        "alwaysOnTop": true,
+        "fileDropEnabled": false
       }
     ]
   }

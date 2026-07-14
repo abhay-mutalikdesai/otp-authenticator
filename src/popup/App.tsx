@@ -103,7 +103,7 @@ export default function App() {
     resetLockTimer()
     if (windowMode && e.button === 0) {
       const target = e.target as HTMLElement
-      if (target.closest('[data-app-drag-region]') && !target.closest('button, input, a, textarea, select')) {
+      if (target.closest('[data-app-drag-region]') && !target.closest('button, input, a, textarea, select, [data-no-drag]')) {
         appWindow.startDragging().catch(() => {})
       }
     }

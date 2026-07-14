@@ -13,6 +13,7 @@ export function Reorder() {
   const tab = (params.tab as 'totp' | 'hotp') || 'totp'
   const [items, setItems] = useState(() => [...entries].filter(e => e.type === tab).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)))
   const dragIdx = useRef<number | null>(null)
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null)
 
   const save = async () => {
     const others = entries.filter(e => e.type !== tab)
@@ -31,16 +32,45 @@ export function Reorder() {
         <button onClick={save} style={{ padding: '6px 14px', borderRadius: 8, background: 'var(--c-primary)', color: '#fff', fontWeight: 600, fontSize: 13, border: 'none', cursor: 'pointer', marginRight: 4 }}>Save</button>
       } />
       <p style={{ fontSize: 12, color: 'var(--c-text2)', padding: '7px 14px', textAlign: 'center', borderBottom: '1px solid var(--c-border)', flexShrink: 0, background: 'var(--c-surface2)' }}>Drag to reorder {tab.toUpperCase()} entries</p>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 11px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 11px' }}
+        onDragEnter={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+        onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+      >
         {items.map((entry, i) => (
           <div key={entry.id} draggable
-            onDragStart={() => { dragIdx.current = i }}
-            onDragOver={e => { e.preventDefault(); if (dragIdx.current === null || dragIdx.current === i) return; const n = [...items]; const [m] = n.splice(dragIdx.current, 1); n.splice(i, 0, m); dragIdx.current = i; setItems(n) }}
-            onDrop={() => { dragIdx.current = null }}
-            style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'var(--c-surface)', borderRadius: 11, padding: '10px 13px', marginBottom: 7, cursor: 'grab', border: '1px solid var(--c-border)' }}>
-            <Icons.Grip size={17} color="var(--c-text3)" />
-            <Avatar issuer={entry.issuer} account={entry.account} size={34} />
-            <div style={{ flex: 1, minWidth: 0 }}>
+            onDragStart={(e) => {
+              e.dataTransfer.setData('text/plain', i.toString());
+              e.dataTransfer.effectAllowed = 'move';
+              dragIdx.current = i;
+            }}
+            onDragEnter={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+            onDragOver={e => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'move';
+              if (dragIdx.current !== null && dragIdx.current !== i) {
+                setHoverIdx(i);
+              }
+            }}
+            onDragEnd={() => { dragIdx.current = null; setHoverIdx(null); }}
+            onDrop={e => {
+              e.preventDefault();
+              if (dragIdx.current !== null && hoverIdx !== null && dragIdx.current !== hoverIdx) {
+                const n = [...items];
+                const [m] = n.splice(dragIdx.current, 1);
+                n.splice(hoverIdx, 0, m);
+                setItems(n);
+              }
+              dragIdx.current = null;
+              setHoverIdx(null);
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'var(--c-surface)', borderRadius: 11, padding: '10px 13px', marginBottom: 7, cursor: 'grab', border: hoverIdx === i ? '1.5px dashed var(--c-primary)' : '1px solid var(--c-border)', opacity: dragIdx.current === i ? 0.5 : 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
+              <Icons.Grip size={17} color="var(--c-text3)" />
+            </div>
+            <div style={{ pointerEvents: 'none' }}>
+              <Avatar issuer={entry.issuer} account={entry.account} size={34} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0, pointerEvents: 'none' }}>
               <p style={{ fontWeight: 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.issuer || entry.account}</p>
               {entry.issuer && <p style={{ fontSize: 11, color: 'var(--c-text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.account}</p>}
             </div>

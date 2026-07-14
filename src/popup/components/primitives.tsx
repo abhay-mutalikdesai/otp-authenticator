@@ -1,20 +1,89 @@
 import { ReactNode, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import useSettingsStore from '../../store/settingsStore'
 import { Icons } from './Icons'
 
-// ─── Buttons & menus ────────────────────────────────────────────────────────
-export function IconBtn({ children, onClick, danger, active, title }: {
-  children: ReactNode; onClick: (e: React.MouseEvent) => void
-  danger?: boolean; active?: boolean; title?: string
-}) {
+export function Tooltip({ text, children }: { text?: string; children: ReactNode }) {
+  const [show, setShow] = useState(false)
+  const [style, setStyle] = useState<React.CSSProperties>({})
+  const ref = useRef<HTMLDivElement>(null)
+
+  const handleEnter = () => {
+    if (!text) return
+    setShow(true)
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect()
+      const w = document.documentElement.clientWidth || window.innerWidth
+      
+      const h = document.documentElement.clientHeight || window.innerHeight
+      
+      let s: React.CSSProperties = {
+        position: 'absolute',
+        zIndex: 99999,
+        pointerEvents: 'none',
+        whiteSpace: 'nowrap'
+      }
+
+      // If button is on right side of screen, anchor tooltip's right edge to button's right edge.
+      // Otherwise anchor left edge to button's left edge.
+      if (rect.left > w * 0.5) {
+        s.right = 0
+      } else {
+        s.left = 0
+      }
+
+      const spaceBelow = h - rect.bottom
+      const spaceAbove = rect.top
+      
+      if (spaceBelow < 40 && spaceAbove > spaceBelow) {
+        s.bottom = '100%'
+        s.marginBottom = '6px'
+      } else {
+        s.top = '100%'
+        s.marginTop = '6px'
+      }
+      
+      setStyle(s)
+    }
+  }
+
   return (
-    <button title={title} onClick={onClick}
-      style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', border: 'none', background: active ? 'var(--c-primary)' : 'transparent', color: danger ? 'var(--c-danger)' : active ? '#fff' : 'var(--c-text2)', flexShrink: 0, transition: 'background .15s, color .15s' }}
-      onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'var(--c-border)' }}
-      onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}>
+    <div ref={ref} style={{ display: 'inline-flex', position: 'relative' }} onMouseEnter={handleEnter} onMouseLeave={() => setShow(false)}>
+      {children}
+      {show && text && (
+        <div style={style}>
+          <div className="anim-slide-up" style={{
+            background: 'var(--c-text)',
+            color: 'var(--c-surface)',
+            padding: '5px 9px',
+            borderRadius: 6,
+            fontSize: 12,
+            fontWeight: 600,
+            whiteSpace: 'nowrap',
+            boxShadow: 'var(--shadow-lg)'
+          }}>
+            {text}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Buttons & menus ────────────────────────────────────────────────────────
+export function IconBtn({ children, onClick, danger, active, title, disabled }: {
+  children: ReactNode; onClick: (e: React.MouseEvent) => void
+  danger?: boolean; active?: boolean; title?: string; disabled?: boolean
+}) {
+  const btn = (
+    <button onClick={e => { if (!disabled) onClick(e) }} disabled={disabled}
+      style={{ width: 36, height: 36, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: disabled ? 'not-allowed' : 'pointer', border: 'none', background: active ? 'var(--c-primary)' : 'transparent', color: danger ? 'var(--c-danger)' : active ? '#fff' : 'var(--c-text2)', flexShrink: 0, transition: 'background .15s, color .15s', opacity: disabled ? 0.3 : 1 }}
+      onMouseEnter={e => { if (!active && !disabled) (e.currentTarget as HTMLButtonElement).style.background = 'var(--c-border)' }}
+      onMouseLeave={e => { if (!active && !disabled) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}>
       {children}
     </button>
   )
+  return title ? <Tooltip text={disabled ? undefined : title}>{btn}</Tooltip> : btn
 }
 
 // Fixed overlay ensures menu closes on ANY click outside (including clicking the trigger button again)
@@ -24,7 +93,7 @@ export function DropMenu({ items, onClose }: {
 }) {
   return (
     <>
-      <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 80 }} />
+      <div onClick={onClose} data-no-drag style={{ position: 'fixed', inset: 0, zIndex: 80, cursor: 'default' }} />
       <div style={{ position: 'absolute', right: 0, top: 38, background: 'var(--c-surface)', border: '1px solid var(--c-border)', borderRadius: 12, zIndex: 90, overflow: 'hidden', minWidth: 185 }}>
         {items.map(item => (
           <button key={item.label} onClick={e => { e.stopPropagation(); item.action(); onClose() }}

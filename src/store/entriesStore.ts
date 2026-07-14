@@ -27,6 +27,7 @@ interface EntriesState {
   deleteAllEntries: () => Promise<void>
   reorderEntries: (newEntries: OtpEntry[]) => Promise<void>
   toggleFavourite: (id: string) => Promise<void>
+  setFavouriteMany: (ids: string[], favourite: boolean) => Promise<void>
   moveToTop: (id: string) => Promise<void>
   incrementCounter: (id: string) => Promise<void>
 
@@ -100,6 +101,13 @@ const useEntriesStore = create<EntriesState>((set, get) => ({
   toggleFavourite: async (id) => {
     const entry = get().entries.find((e) => e.id === id)
     if (entry) await get().updateEntry(id, { favourite: !entry.favourite })
+  },
+
+  setFavouriteMany: async (ids, favourite) => {
+    const idSet = new Set(ids)
+    const entries = get().entries.map((e) => (idSet.has(e.id) ? { ...e, favourite } : e))
+    set({ entries })
+    await saveEntries(entries)
   },
 
   moveToTop: async (id) => {

@@ -10,7 +10,7 @@ import { useOtpData } from '../hooks/useOtpData'
 import { useToast } from '../components/Toast'
 import { AppLogo } from '../components/AppLogo'
 import { Icons } from '../components/Icons'
-import { IconBtn, DropMenu, Confirm } from '../components/primitives'
+import { IconBtn, DropMenu, Confirm, Tooltip } from '../components/primitives'
 import { AccountCard } from '../components/AccountCard'
 import { TabBar } from '../components/TabBar'
 import { EmptyState } from '../components/EmptyState'
@@ -20,13 +20,13 @@ export function MainList({ onLock }: { onLock?: () => void }) {
   const {
     entries: allEntries, loadFromStorage, loaded,
     selectMode, selectedIds, setSelectMode, toggleSelect, selectAll, clearSelection, deleteMany,
-    toggleFavourite, moveToTop, deleteEntry, incrementCounter,
+    toggleFavourite, setFavouriteMany, moveToTop, deleteEntry, incrementCounter,
     searchQuery, setSearchQuery, favouriteFilter, setFavouriteFilter,
     getFilteredEntries,
   } = useEntriesStore(useShallow(s => ({
     entries: s.entries, loadFromStorage: s.loadFromStorage, loaded: s.loaded,
     selectMode: s.selectMode, selectedIds: s.selectedIds, setSelectMode: s.setSelectMode, toggleSelect: s.toggleSelect, selectAll: s.selectAll, clearSelection: s.clearSelection, deleteMany: s.deleteMany,
-    toggleFavourite: s.toggleFavourite, moveToTop: s.moveToTop, deleteEntry: s.deleteEntry, incrementCounter: s.incrementCounter,
+    toggleFavourite: s.toggleFavourite, setFavouriteMany: s.setFavouriteMany, moveToTop: s.moveToTop, deleteEntry: s.deleteEntry, incrementCounter: s.incrementCounter,
     searchQuery: s.searchQuery, setSearchQuery: s.setSearchQuery, favouriteFilter: s.favouriteFilter, setFavouriteFilter: s.setFavouriteFilter,
     getFilteredEntries: s.getFilteredEntries,
   })))
@@ -58,6 +58,26 @@ export function MainList({ onLock }: { onLock?: () => void }) {
     show('Copied!', 'success')
   }
 
+  const handleMakeFavourites = async () => {
+    if (selectedIds.size === 0) return
+    await setFavouriteMany([...selectedIds], true)
+    clearSelection()
+    setSelectMode(false)
+    show('Added to favourites', 'success')
+  }
+
+  const handleRemoveFavourites = async () => {
+    if (selectedIds.size === 0) return
+    await setFavouriteMany([...selectedIds], false)
+    clearSelection()
+    setSelectMode(false)
+    show('Removed from favourites', 'success')
+  }
+
+  const selectedEntries = useMemo(() => allEntries.filter(e => selectedIds.has(e.id)), [allEntries, selectedIds])
+  const allFav = selectedEntries.length > 0 && selectedEntries.every(e => e.favourite)
+  const allNotFav = selectedEntries.length > 0 && selectedEntries.every(e => !e.favourite)
+
   const cardProps = (entry: OtpEntry) => ({
     entry, otp: otpMap[entry.id] || '------',
     // Each entry uses its own period-specific progress and countdown
@@ -88,6 +108,12 @@ export function MainList({ onLock }: { onLock?: () => void }) {
             <IconBtn onClick={() => { setSelectMode(false); clearSelection() }}><Icons.Close size={19} /></IconBtn>
             <span style={{ flex: 1, fontWeight: 700, fontSize: 14, marginLeft: 6 }}>{selectedIds.size} selected</span>
             <IconBtn onClick={() => selectAll()} title="Select all"><Icons.SelectAll size={17} /></IconBtn>
+            <IconBtn onClick={handleMakeFavourites} title="Add to favourites" disabled={allFav || selectedIds.size === 0}>
+              <Icons.Star filled={true} size={17} />
+            </IconBtn>
+            <IconBtn onClick={handleRemoveFavourites} title="Remove from favourites" disabled={allNotFav || selectedIds.size === 0}>
+              <Icons.Star filled={false} size={17} />
+            </IconBtn>
             <IconBtn danger onClick={() => selectedIds.size > 0 && setBulkDel(true)} title="Delete"><Icons.Trash size={17} /></IconBtn>
           </>
         ) : searchOpen ? (
@@ -147,12 +173,16 @@ export function MainList({ onLock }: { onLock?: () => void }) {
 
       {/* FAB */}
       {!selectMode && (
-        <button onClick={() => navigate('add', { defaultType: tab })} title="Add account"
-          style={{ position: 'absolute', bottom: 18, right: 14, width: 52, height: 52, borderRadius: '50%', background: 'var(--c-primary)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 20, fontSize: 26, transition: 'transform .15s' }}
-          onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)')}
-          onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)')}>
-          +
-        </button>
+        <div style={{ position: 'absolute', bottom: 18, right: 14, zIndex: 20 }}>
+          <Tooltip text="Add account">
+            <button onClick={() => navigate('add', { defaultType: tab })}
+              style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--c-primary)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, transition: 'transform .15s' }}
+              onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)')}
+              onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)')}>
+              +
+            </button>
+          </Tooltip>
+        </div>
       )}
 
       <Confirm open={delId !== null} title="Delete account?" msg="This cannot be undone." danger

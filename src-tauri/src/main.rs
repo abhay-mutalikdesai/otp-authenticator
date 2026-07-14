@@ -150,6 +150,9 @@ fn main() {
                     }
                 }
             }
+            tauri::WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                let _ = event.window().set_size(tauri::Size::Physical(*new_inner_size));
+            }
             _ => {}
         })
         .run(tauri::generate_context!())

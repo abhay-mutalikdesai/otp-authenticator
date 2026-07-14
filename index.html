@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="description" content="Just tokens, no tracking. A secure TOTP and HOTP authenticator for the privacy conscious." />
     <title>OTP Authenticator</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=4" />
@@ -10,12 +10,6 @@
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      // Suppress Tauri warning in browser/extension context
-      if (!window.__TAURI_IPC__) {
-        window.__TAURI_METADATA__ = { __currentWindow: 'main' };
-      }
-    </script>
     <script type="module" src="/src/popup/main.tsx"></script>
   </body>
 </html>
