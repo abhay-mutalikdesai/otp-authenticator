@@ -4,7 +4,7 @@ import { buildOtpauthUri } from '../../../lib/otpauthUri'
 import { parseImportText } from '../../../lib/importParser'
 import { useToast } from '../../components/Toast'
 import { Icons } from '../../components/Icons'
-import { invoke } from '@tauri-apps/api/tauri'
+import { platform } from '../../../lib/platform'
 
 export function ImportExportPanel({ hasAccounts = true }: { hasAccounts?: boolean }) {
   const { entries, addEntry } = useEntriesStore()
@@ -42,12 +42,9 @@ export function ImportExportPanel({ hasAccounts = true }: { hasAccounts?: boolea
   }
 
   const handleUploadClick = async () => {
-    // @ts-ignore
-    if (window.__TAURI_IPC__) {
-      try {
-        await invoke('set_ignore_blur', { ignore: true })
-      } catch { /* ignore */ }
-    }
+    try {
+      await platform.setIgnoreBlur(true)
+    } catch { /* ignore */ }
     fileRef.current?.click()
   }
 
@@ -70,7 +67,7 @@ export function ImportExportPanel({ hasAccounts = true }: { hasAccounts?: boolea
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         {(['export', 'import'] as const).map(t => (
           <button key={t} onClick={() => setTab(t)}
-            style={{ flex: 1, padding: '8px', borderRadius: 8, border: `1.5px solid ${tab === t ? 'var(--c-primary)' : 'var(--c-border)'}`, background: tab === t ? 'var(--c-primary)' : 'var(--c-surface)', color: tab === t ? '#fff' : 'var(--c-text)', fontWeight: 700, fontSize: 13, cursor: 'pointer', textTransform: 'capitalize' }}>
+            className={`ie-tab-btn ${tab === t ? 'ie-tab-btn--active' : ''}`}>
             {t}
           </button>
         ))}
@@ -79,31 +76,33 @@ export function ImportExportPanel({ hasAccounts = true }: { hasAccounts?: boolea
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <p style={{ fontSize: 13, color: 'var(--c-text2)' }}>{entries.length} account{entries.length !== 1 ? 's' : ''} ready to export</p>
           <button onClick={exportJson} disabled={!hasAccounts}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '11px', borderRadius: 10, background: hasAccounts ? 'var(--c-primary)' : 'var(--c-border)', color: hasAccounts ? '#fff' : 'var(--c-text3)', fontWeight: 700, fontSize: 13, border: 'none', cursor: hasAccounts ? 'pointer' : 'not-allowed', opacity: hasAccounts ? 1 : 0.6 }}>
+            className={`btn btn--md btn--full ${hasAccounts ? 'btn--primary' : ''}`}
+            style={!hasAccounts ? { background: 'var(--c-border)', color: 'var(--c-text3)', cursor: 'not-allowed' } : { gap: 7, padding: 11, borderRadius: 10 }}>
             <Icons.Download size={16} color={hasAccounts ? '#fff' : 'var(--c-text3)'} /> Export JSON
           </button>
           <button onClick={copyUris} disabled={!hasAccounts}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, padding: '11px', borderRadius: 10, background: 'var(--c-surface)', color: hasAccounts ? 'var(--c-text)' : 'var(--c-text3)', fontWeight: 700, fontSize: 13, border: '1.5px solid var(--c-border)', cursor: hasAccounts ? 'pointer' : 'not-allowed', opacity: hasAccounts ? 1 : 0.6 }}>
+            className="btn btn--md btn--full"
+            style={{ gap: 7, padding: 11, borderRadius: 10, background: 'var(--c-surface)', color: hasAccounts ? 'var(--c-text)' : 'var(--c-text3)', border: '1.5px solid var(--c-border)', opacity: hasAccounts ? 1 : 0.6, cursor: hasAccounts ? 'pointer' : 'not-allowed' }}>
             <Icons.Copy size={16} /> Copy as otpauth URIs
           </button>
         </div>
       ) : (
         <>
           <input ref={fileRef} type="file" accept=".json,.txt" onChange={handleFileUpload} style={{ display: 'none' }} />
-          <button onClick={handleUploadClick}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%', padding: '10px', borderRadius: 8, background: 'var(--c-surface)', color: 'var(--c-text)', fontWeight: 600, fontSize: 13, border: '1.5px dashed var(--c-border)', cursor: 'pointer', marginBottom: 8 }}>
+          <button onClick={handleUploadClick} className="ie-upload-btn">
             <Icons.Upload size={15} /> Upload JSON or text file
           </button>
           <textarea value={text} onChange={e => setText(e.target.value)} rows={4} placeholder="Paste JSON or otpauth:// URIs (one per line)"
-            style={{ width: '100%', padding: '9px 10px', border: '1.5px solid var(--c-border)', borderRadius: 8, background: 'var(--c-surface)', color: 'var(--c-text)', resize: 'none', fontSize: 13, outline: 'none', marginBottom: 7, boxSizing: 'border-box' }} />
-          {parsed.error && <p style={{ color: 'var(--c-danger)', fontSize: 12, marginBottom: 7 }}>{parsed.error}</p>}
+            className="ie-textarea" />
+          {parsed.error && <p className="msg-error" style={{ marginBottom: 7 }}>{parsed.error}</p>}
           {!parsed.error && parsed.entries.length > 0 && (
-            <p style={{ color: 'var(--c-success)', fontSize: 12, marginBottom: 7 }}>
+            <p className="msg-success" style={{ marginBottom: 7 }}>
               ✓ {parsed.entries.length} valid account{parsed.entries.length !== 1 ? 's' : ''} ready to import
             </p>
           )}
           <button onClick={doImport} disabled={!canImport}
-            style={{ width: '100%', padding: '11px', borderRadius: 10, background: canImport ? 'var(--c-primary)' : 'var(--c-border)', color: canImport ? '#fff' : 'var(--c-text3)', fontWeight: 700, fontSize: 13, border: 'none', cursor: canImport ? 'pointer' : 'not-allowed', opacity: canImport ? 1 : 0.7 }}>
+            className={`btn btn--md btn--full ${canImport ? 'btn--primary' : ''}`}
+            style={!canImport ? { background: 'var(--c-border)', color: 'var(--c-text3)', cursor: 'not-allowed', opacity: 0.7, padding: 11, borderRadius: 10 } : { padding: 11, borderRadius: 10 }}>
             {importing ? 'Importing…' : 'Import'}
           </button>
         </>

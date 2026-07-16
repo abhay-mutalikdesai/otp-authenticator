@@ -52,7 +52,6 @@ export function MainList({ onLock }: { onLock?: () => void }) {
   const { otpMap, progressMap, secondsMap, refreshOne } = useOtpData(tabList)
 
   const handleCopy = async (entry: OtpEntry) => {
-    // Always generate a fresh code regardless of showOtp visibility state
     const code = await generateOTP(entry).catch(() => '------')
     await navigator.clipboard.writeText(code).catch(() => { })
     show('Copied!', 'success')
@@ -61,16 +60,14 @@ export function MainList({ onLock }: { onLock?: () => void }) {
   const handleMakeFavourites = async () => {
     if (selectedIds.size === 0) return
     await setFavouriteMany([...selectedIds], true)
-    clearSelection()
-    setSelectMode(false)
+    clearSelection(); setSelectMode(false)
     show('Added to favourites', 'success')
   }
 
   const handleRemoveFavourites = async () => {
     if (selectedIds.size === 0) return
     await setFavouriteMany([...selectedIds], false)
-    clearSelection()
-    setSelectMode(false)
+    clearSelection(); setSelectMode(false)
     show('Removed from favourites', 'success')
   }
 
@@ -80,7 +77,6 @@ export function MainList({ onLock }: { onLock?: () => void }) {
 
   const cardProps = (entry: OtpEntry) => ({
     entry, otp: otpMap[entry.id] || '------',
-    // Each entry uses its own period-specific progress and countdown
     progress: progressMap[entry.id] ?? getProgress(entry.period ?? 30),
     seconds: secondsMap[entry.id] ?? getSecondsRemaining(entry.period ?? 30),
     showOtp,
@@ -100,13 +96,14 @@ export function MainList({ onLock }: { onLock?: () => void }) {
   })
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+    <div className="view-container" style={{ position: 'relative' }}>
       {/* Header */}
-      <div {...(windowMode ? { 'data-app-drag-region': true } : {})} style={{ display: 'flex', alignItems: 'center', height: 52, padding: '0 4px', background: 'var(--c-surface)', borderBottom: '1px solid var(--c-border)', flexShrink: 0, position: 'relative', zIndex: 10, cursor: windowMode ? 'move' : 'default' }}>
+      <div {...(windowMode ? { 'data-app-drag-region': true } : {})}
+        className={`main-header ${windowMode ? 'header--draggable' : ''}`}>
         {selectMode ? (
           <>
             <IconBtn onClick={() => { setSelectMode(false); clearSelection() }}><Icons.Close size={19} /></IconBtn>
-            <span style={{ flex: 1, fontWeight: 700, fontSize: 14, marginLeft: 6 }}>{selectedIds.size} selected</span>
+            <span className="select-count">{selectedIds.size} selected</span>
             <IconBtn onClick={() => selectAll()} title="Select all"><Icons.SelectAll size={17} /></IconBtn>
             <IconBtn onClick={handleMakeFavourites} title="Add to favourites" disabled={allFav || selectedIds.size === 0}>
               <Icons.Star filled={true} size={17} />
@@ -120,7 +117,7 @@ export function MainList({ onLock }: { onLock?: () => void }) {
           <>
             <IconBtn onClick={() => { setSearchOpen(false); setSearchQuery('') }}><Icons.Back size={19} /></IconBtn>
             <input autoFocus value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search accounts…"
-              style={{ flex: 1, border: 'none', background: 'transparent', fontSize: 15, color: 'var(--c-text)', outline: 'none' }} />
+              className="main-header__search-input" />
             {searchQuery && <IconBtn onClick={() => setSearchQuery('')}><Icons.Close size={17} /></IconBtn>}
           </>
         ) : (
@@ -158,11 +155,11 @@ export function MainList({ onLock }: { onLock?: () => void }) {
 
       {/* Body */}
       {!loaded ? (
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text2)' }}>Loading…</div>
+        <div className="centered" style={{ flex: 1, color: 'var(--c-text2)' }}>Loading…</div>
       ) : tabList.length === 0 && !searchQuery ? (
         <EmptyState type={tab} onAdd={() => navigate('add', { defaultType: tab })} />
       ) : (
-        <div style={{ flex: 1, overflowY: 'auto', padding: '10px 11px 76px' }}>
+        <div className="view-body" style={{ padding: '10px 11px 76px' }}>
           {tabList.length === 0 ? (
             <div style={{ textAlign: 'center', marginTop: 48, color: 'var(--c-text2)' }}>
               <p style={{ fontWeight: 600, fontSize: 14 }}>No results</p>
@@ -173,14 +170,9 @@ export function MainList({ onLock }: { onLock?: () => void }) {
 
       {/* FAB */}
       {!selectMode && (
-        <div style={{ position: 'absolute', bottom: 18, right: 14, zIndex: 20 }}>
+        <div className="fab">
           <Tooltip text="Add account">
-            <button onClick={() => navigate('add', { defaultType: tab })}
-              style={{ width: 52, height: 52, borderRadius: '50%', background: 'var(--c-primary)', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, transition: 'transform .15s' }}
-              onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.1)')}
-              onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)')}>
-              +
-            </button>
+            <button onClick={() => navigate('add', { defaultType: tab })} className="fab__btn">+</button>
           </Tooltip>
         </div>
       )}

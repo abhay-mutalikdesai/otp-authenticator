@@ -47,21 +47,21 @@ export function MasterPasswordPanel() {
   }
 
   if (mode === 'idle') return (
-    <div style={{ padding: '10px 14px 12px' }}>
+    <div className="mp-panel-idle">
       {hasPw ? (
         <div style={{ display: 'flex', gap: 7 }}>
-          <button onClick={() => setMode('change')} style={{ flex: 1, padding: '8px', borderRadius: 8, background: 'var(--c-surface2)', border: '1px solid var(--c-border)', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: 'var(--c-text)' }}>Change</button>
-          <button onClick={() => setMode('remove')} style={{ flex: 1, padding: '8px', borderRadius: 8, background: '#FFF5F5', border: '1px solid #FFCDD2', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: 'var(--c-danger)' }}>Remove</button>
+          <button onClick={() => setMode('change')} className="btn btn--secondary btn--sm" style={{ flex: 1 }}>Change</button>
+          <button onClick={() => setMode('remove')} className="btn btn--danger-outline btn--sm" style={{ flex: 1 }}>Remove</button>
         </div>
       ) : (
-        <button onClick={() => setMode('set')} style={{ width: '100%', padding: '9px', borderRadius: 8, background: 'var(--c-primary)', color: '#fff', fontWeight: 700, fontSize: 13, border: 'none', cursor: 'pointer' }}>Set Master Password</button>
+        <button onClick={() => setMode('set')} className="btn btn--primary btn--sm btn--full">Set Master Password</button>
       )}
     </div>
   )
 
   return (
-    <div style={{ padding: '10px 14px 14px', borderTop: '1px solid var(--c-border)', background: 'var(--c-surface2)' }}>
-      <p style={{ fontWeight: 700, fontSize: 13, marginBottom: 10, color: 'var(--c-text)' }}>
+    <div className="mp-panel-form">
+      <p className="mp-panel-form__title">
         {mode === 'set' ? 'Set password' : mode === 'change' ? 'Change password' : 'Remove password'}
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -75,11 +75,12 @@ export function MasterPasswordPanel() {
           </>
         )}
       </div>
-      {err && <p style={{ fontSize: 12, color: 'var(--c-danger)', marginTop: 7 }}>{err}</p>}
+      {err && <p className="msg-error" style={{ marginTop: 7 }}>{err}</p>}
       <div style={{ display: 'flex', gap: 7, marginTop: 10 }}>
-        <button onClick={reset} style={{ flex: 1, padding: '8px', borderRadius: 8, background: 'var(--c-surface2)', border: '1px solid var(--c-border)', fontSize: 13, fontWeight: 600, cursor: 'pointer', color: 'var(--c-text)' }}>Cancel</button>
+        <button onClick={reset} className="btn btn--secondary btn--sm" style={{ flex: 1 }}>Cancel</button>
         <button onClick={mode === 'remove' ? handleRemove : handleSave} disabled={busy}
-          style={{ flex: 1, padding: '8px', borderRadius: 8, background: mode === 'remove' ? 'var(--c-danger)' : 'var(--c-primary)', color: '#fff', fontSize: 13, fontWeight: 700, border: 'none', cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.7 : 1 }}>
+          className={`btn btn--sm ${mode === 'remove' ? 'btn--danger' : 'btn--primary'}`}
+          style={{ flex: 1, opacity: busy ? 0.7 : 1, cursor: busy ? 'not-allowed' : 'pointer' }}>
           {mode === 'remove' ? 'Remove' : 'Save'}
         </button>
       </div>

@@ -22,36 +22,34 @@ export const AccountCard = memo(function AccountCard({ entry, otp, progress, sec
   const handleMenuClose = () => {
     menuJustClosedRef.current = true
     setMenuOpen(false)
-    // Reset the flag after the click event cycle completes
     setTimeout(() => { menuJustClosedRef.current = false }, 0)
   }
 
   return (
     <div
-      style={{ background: 'var(--c-surface)', borderRadius: 13, padding: '11px 10px 11px 13px', marginBottom: 7, display: 'flex', alignItems: 'center', gap: 11, border: `1.5px solid ${selected ? 'var(--c-primary)' : 'var(--c-border)'}`, cursor: 'pointer', position: 'relative', transition: 'border-color .15s', userSelect: 'none' }}
+      className={`account-card ${selected ? 'account-card--selected' : ''}`}
       onPointerDown={() => { longRef.current = setTimeout(() => { if (!selectMode) onSelect() }, 600) }}
       onPointerUp={() => clearTimeout(longRef.current)}
       onPointerCancel={() => clearTimeout(longRef.current)}
       onClick={() => { if (menuJustClosedRef.current) return; if (selectMode) onSelect(); else onCopy() }}>
 
       {selectMode && (
-        <div style={{ width: 22, height: 22, borderRadius: '50%', border: `2.5px solid ${selected ? 'var(--c-primary)' : 'var(--c-border)'}`, background: selected ? 'var(--c-primary)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .15s' }}>
+        <div className={`account-card__select-dot ${selected ? 'account-card__select-dot--active' : ''}`}>
           {selected && <Icons.Check size={12} color="#fff" />}
         </div>
       )}
 
       <Avatar issuer={entry.issuer} account={entry.account} size={42} />
 
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 12, color: 'var(--c-text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>
+      <div className="account-card__info">
+        <div className="account-card__label">
           {entry.issuer ? `${entry.issuer} · ${entry.account}` : entry.account}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="account-card__otp-row">
           <OtpCode code={otp} hidden={!showOtp} />
           {entry.type === 'hotp' && !selectMode && (
             <Tooltip text="Next OTP">
-              <button onClick={e => { e.stopPropagation(); onIncrement() }}
-                style={{ width: 26, height: 26, borderRadius: '50%', border: '1.5px solid var(--c-border)', background: 'var(--c-surface2)', color: 'var(--c-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
+              <button onClick={e => { e.stopPropagation(); onIncrement() }} className="account-card__hotp-btn">
                 <Icons.Refresh size={13} />
               </button>
             </Tooltip>
@@ -61,11 +59,10 @@ export const AccountCard = memo(function AccountCard({ entry, otp, progress, sec
 
       {/* Right-side controls: [★ if fav] [ring/counter] [3-dot + menu] */}
       {!selectMode && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0, position: 'relative' }}>
+        <div className="account-card__controls">
           {entry.favourite && (
             <Tooltip text="Unfavourite">
-              <button onClick={e => { e.stopPropagation(); onFav() }}
-                style={{ width: 22, height: 22, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, color: '#F59E0B' }}>
+              <button onClick={e => { e.stopPropagation(); onFav() }} className="account-card__fav-btn">
                 <Icons.Star size={14} filled />
               </button>
             </Tooltip>
@@ -75,9 +72,7 @@ export const AccountCard = memo(function AccountCard({ entry, otp, progress, sec
           <Tooltip text="More">
             <button
               onClick={e => { e.stopPropagation(); if (menuOpen) { handleMenuClose() } else { setMenuOpen(true) } }}
-              style={{ width: 28, height: 28, borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-text3)', position: 'relative', zIndex: 1 }}
-              onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.background = 'var(--c-border)')}
-              onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.background = 'transparent')}>
+              className="account-card__more-btn">
               <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor" style={{ display: 'block', pointerEvents: 'none' }}>
                 <circle cx="12" cy="5" r="2.2" /><circle cx="12" cy="12" r="2.2" /><circle cx="12" cy="19" r="2.2" />
               </svg>

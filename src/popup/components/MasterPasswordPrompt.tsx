@@ -12,10 +12,10 @@ export function MasterPasswordPrompt() {
   const { navigate } = useNavigationStore()
 
   return (
-    <div style={{ position: 'absolute', inset: 0, background: 'var(--c-overlay)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 300, padding: '0 20px' }}>
-      <div className="anim-slide-up" style={{ background: 'var(--c-surface)', borderRadius: 16, padding: '22px 20px', width: '100%', maxWidth: 300 }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-          <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg, #6366F1, #8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div className="overlay">
+      <div className="anim-slide-up mp-prompt">
+        <div className="centered" style={{ marginBottom: 12 }}>
+          <div className="mp-prompt__icon">
             <Icons.Lock size={24} color="#fff" />
           </div>
         </div>
@@ -24,17 +24,17 @@ export function MasterPasswordPrompt() {
           Set a master password so this app locks itself when you're not using it.
         </p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <button onClick={() => navigate('settings')}
-            style={{ padding: '10px', borderRadius: 10, background: 'var(--c-primary)', color: '#fff', fontWeight: 700, fontSize: 13, border: 'none', cursor: 'pointer' }}>
+          <button onClick={() => navigate('settings')} className="btn btn--primary btn--md btn--full"
+            style={{ padding: 10, borderRadius: 10 }}>
             Enable master password
           </button>
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={() => updateSetting('mpReminderSnoozeUntil', Date.now() + SNOOZE_MS)}
-              style={{ flex: 1, padding: '8px', borderRadius: 8, background: 'var(--c-surface2)', border: '1px solid var(--c-border)', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: 'var(--c-text)' }}>
+              className="btn btn--secondary btn--sm" style={{ flex: 1, fontSize: 12 }}>
               Remind me later
             </button>
             <button onClick={() => updateSetting('mpReminderSnoozeUntil', Date.now() + LONG_SNOOZE_MS)}
-              style={{ flex: 1, padding: '8px', borderRadius: 8, background: 'var(--c-surface2)', border: '1px solid var(--c-border)', fontSize: 12, fontWeight: 600, cursor: 'pointer', color: 'var(--c-text)' }}>
+              className="btn btn--secondary btn--sm" style={{ flex: 1, fontSize: 12 }}>
               Don't show again
             </button>
           </div>

@@ -15,7 +15,7 @@ function getInitials(issuer: string, account: string): string {
 export function Avatar({ issuer, account, size = 40 }: { issuer?: string; account?: string; size?: number }) {
   const bg = getAvatarColor(issuer || account || '?')
   return (
-    <div style={{ width: size, height: size, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: Math.round(size * 0.36), flexShrink: 0, userSelect: 'none' }}>
+    <div className="avatar" style={{ width: size, height: size, background: bg, fontSize: Math.round(size * 0.36) }}>
       {getInitials(issuer || '', account || '?')}
     </div>
   )

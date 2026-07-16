@@ -7,6 +7,7 @@ import { useToast } from '../../components/Toast'
 import { Header, SectionLabel, SectionCard, SRow, MiniSelect, Confirm } from '../../components/primitives'
 import { MasterPasswordPanel } from './MasterPasswordPanel'
 import { ImportExportPanel } from './ImportExportPanel'
+import { platform } from '../../../lib/platform'
 
 /**
  * - "Clear all" is split into two separate actions: Delete accounts / Reset settings
@@ -22,12 +23,12 @@ export function Settings() {
   const [confirmDeleteAccts, setConfirmDeleteAccts] = useState(false)
   const [confirmResetSettings, setConfirmResetSettings] = useState(false)
 
-const isDesktop = typeof window !== 'undefined' && '__TAURI_IPC__' in window
+  const isDesktop = platform.canSetWindowMode
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }} className="anim-slide-right">
+    <div className="view-container anim-slide-right">
       <Header title="Settings" onBack={goBack} />
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 11px 20px' }}>
+      <div className="view-body" style={{ padding: '0 11px 20px' }}>
 
         <SectionLabel text="Display" />
         <SectionCard>
@@ -92,13 +93,14 @@ const isDesktop = typeof window !== 'undefined' && '__TAURI_IPC__' in window
           <SRow label={`Delete all accounts (${entries.length})`} border>
             <button onClick={() => entries.length > 0 && setConfirmDeleteAccts(true)}
               disabled={entries.length === 0}
-              style={{ padding: '5px 12px', borderRadius: 7, background: entries.length === 0 ? 'var(--c-border)' : 'var(--c-danger)', color: entries.length === 0 ? 'var(--c-text3)' : '#fff', fontSize: 12, fontWeight: 700, border: 'none', cursor: entries.length === 0 ? 'not-allowed' : 'pointer', opacity: entries.length === 0 ? 0.6 : 1 }}>
+              className={`btn btn--sm ${entries.length === 0 ? '' : 'btn--danger'}`}
+              style={entries.length === 0 ? { background: 'var(--c-border)', color: 'var(--c-text3)', cursor: 'not-allowed', padding: '5px 12px', borderRadius: 7 } : { padding: '5px 12px', borderRadius: 7 }}>
               Delete
             </button>
           </SRow>
           <SRow label="Reset settings to defaults" border={false}>
             <button onClick={() => setConfirmResetSettings(true)}
-              style={{ padding: '5px 12px', borderRadius: 7, background: 'var(--c-danger)', color: '#fff', fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+              className="btn btn--danger btn--sm" style={{ padding: '5px 12px', borderRadius: 7 }}>
               Reset
             </button>
           </SRow>

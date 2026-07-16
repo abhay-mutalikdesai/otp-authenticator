@@ -18,19 +18,20 @@ export function LockScreen() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', alignItems: 'center', justifyContent: 'center', padding: 32, background: 'var(--c-surface)' }}>
-      <div style={{ width: 68, height: 68, borderRadius: '50%', background: 'linear-gradient(135deg, #6366F1, #8B5CF6)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
+    <div className="lock-screen">
+      <div className="lock-screen__icon">
         <Icons.Lock size={30} color="#fff" />
       </div>
-      <p style={{ fontSize: 19, fontWeight: 800, marginBottom: 6 }}>App Locked</p>
-      <p style={{ fontSize: 13, color: 'var(--c-text2)', marginBottom: 24 }}>Enter your master password</p>
-      <div style={{ width: '100%', maxWidth: 280 }}>
+      <p className="lock-screen__title">App Locked</p>
+      <p className="lock-screen__subtitle">Enter your master password</p>
+      <div className="lock-screen__form">
         <div style={{ marginBottom: err ? 6 : 14 }}>
           <PwInput value={pw} onChange={v => { setPw(v); setErr('') }} placeholder="Master password" onEnter={check} autoFocus />
         </div>
-        {err && <p style={{ fontSize: 12, color: 'var(--c-danger)', marginBottom: 12, textAlign: 'center' }}>{err}</p>}
+        {err && <p className="msg-error" style={{ marginBottom: 12, textAlign: 'center' }}>{err}</p>}
         <button onClick={check} disabled={!pw || busy}
-          style={{ width: '100%', padding: '12px', borderRadius: 12, background: (!pw || busy) ? 'var(--c-border)' : 'var(--c-primary)', color: (!pw || busy) ? 'var(--c-text3)' : '#fff', fontWeight: 700, fontSize: 15, border: 'none', cursor: (!pw || busy) ? 'not-allowed' : 'pointer' }}>
+          className={`btn btn--lg btn--full ${!pw || busy ? '' : 'btn--primary'}`}
+          style={!pw || busy ? { background: 'var(--c-border)', color: 'var(--c-text3)', cursor: 'not-allowed', borderRadius: 12, fontSize: 15 } : { borderRadius: 12, fontSize: 15 }}>
           {busy ? 'Checking…' : 'Unlock'}
         </button>
       </div>

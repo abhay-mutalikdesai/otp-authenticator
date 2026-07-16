@@ -27,43 +27,41 @@ export function Reorder() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }} className="anim-slide-right">
+    <div className="view-container anim-slide-right">
       <Header title={`Reorder ${tab.toUpperCase()}`} onBack={goBack} right={
-        <button onClick={save} style={{ padding: '6px 14px', borderRadius: 8, background: 'var(--c-primary)', color: '#fff', fontWeight: 600, fontSize: 13, border: 'none', cursor: 'pointer', marginRight: 4 }}>Save</button>
+        <button onClick={save} className="btn btn--primary btn--sm" style={{ marginRight: 4, padding: '6px 14px' }}>Save</button>
       } />
-      <p style={{ fontSize: 12, color: 'var(--c-text2)', padding: '7px 14px', textAlign: 'center', borderBottom: '1px solid var(--c-border)', flexShrink: 0, background: 'var(--c-surface2)' }}>Drag to reorder {tab.toUpperCase()} entries</p>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 11px' }}
-        onDragEnter={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
-        onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+      <p className="reorder-hint">Drag to reorder {tab.toUpperCase()} entries</p>
+      <div className="view-body" style={{ padding: '8px 11px' }}
+        onDragEnter={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }}
+        onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }}
       >
         {items.map((entry, i) => (
           <div key={entry.id} draggable
             onDragStart={(e) => {
-              e.dataTransfer.setData('text/plain', i.toString());
-              e.dataTransfer.effectAllowed = 'move';
-              dragIdx.current = i;
+              e.dataTransfer.setData('text/plain', i.toString())
+              e.dataTransfer.effectAllowed = 'move'
+              dragIdx.current = i
             }}
-            onDragEnter={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }}
+            onDragEnter={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move' }}
             onDragOver={e => {
-              e.preventDefault();
-              e.dataTransfer.dropEffect = 'move';
-              if (dragIdx.current !== null && dragIdx.current !== i) {
-                setHoverIdx(i);
-              }
+              e.preventDefault()
+              e.dataTransfer.dropEffect = 'move'
+              if (dragIdx.current !== null && dragIdx.current !== i) setHoverIdx(i)
             }}
-            onDragEnd={() => { dragIdx.current = null; setHoverIdx(null); }}
+            onDragEnd={() => { dragIdx.current = null; setHoverIdx(null) }}
             onDrop={e => {
-              e.preventDefault();
+              e.preventDefault()
               if (dragIdx.current !== null && hoverIdx !== null && dragIdx.current !== hoverIdx) {
-                const n = [...items];
-                const [m] = n.splice(dragIdx.current, 1);
-                n.splice(hoverIdx, 0, m);
-                setItems(n);
+                const n = [...items]
+                const [m] = n.splice(dragIdx.current, 1)
+                n.splice(hoverIdx, 0, m)
+                setItems(n)
               }
-              dragIdx.current = null;
-              setHoverIdx(null);
+              dragIdx.current = null; setHoverIdx(null)
             }}
-            style={{ display: 'flex', alignItems: 'center', gap: 11, background: 'var(--c-surface)', borderRadius: 11, padding: '10px 13px', marginBottom: 7, cursor: 'grab', border: hoverIdx === i ? '1.5px dashed var(--c-primary)' : '1px solid var(--c-border)', opacity: dragIdx.current === i ? 0.5 : 1 }}>
+            className={`reorder-item ${hoverIdx === i ? 'reorder-item--hover' : ''}`}
+            style={{ opacity: dragIdx.current === i ? 0.5 : 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', pointerEvents: 'none' }}>
               <Icons.Grip size={17} color="var(--c-text3)" />
             </div>
@@ -71,8 +69,8 @@ export function Reorder() {
               <Avatar issuer={entry.issuer} account={entry.account} size={34} />
             </div>
             <div style={{ flex: 1, minWidth: 0, pointerEvents: 'none' }}>
-              <p style={{ fontWeight: 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.issuer || entry.account}</p>
-              {entry.issuer && <p style={{ fontSize: 11, color: 'var(--c-text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{entry.account}</p>}
+              <p className="reorder-item__name">{entry.issuer || entry.account}</p>
+              {entry.issuer && <p className="reorder-item__account">{entry.account}</p>}
             </div>
           </div>
         ))}

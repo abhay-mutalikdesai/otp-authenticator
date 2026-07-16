@@ -18,6 +18,7 @@
  *   chrome.storage.local.get() call per popup session, instead of one round trip per key.
  */
 import type { AppSettings, OtpEntry } from '../types'
+import { platform } from './platform'
 
 const ENTRIES_KEY = 'otp_auth_entries_v1'
 const SETTINGS_KEY = 'otp_auth_settings_v1'
@@ -38,70 +39,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
 
 
 // ─── Low-level key/value access ────────────────────────────────────────────
-function hasChromeStorage(): boolean {
-  return typeof chrome !== 'undefined' && !!chrome.storage?.local
-}
-
-function isTauri(): boolean {
-  return typeof window !== 'undefined' && '__TAURI_IPC__' in window
-}
-
-async function desktopGetMany(keys: string[]): Promise<Record<string, unknown>> {
-  const { readTextFile, exists, BaseDirectory } = await import('@tauri-apps/api/fs')
-  const out: Record<string, unknown> = {}
-  for (const key of keys) {
-    try {
-      const fileName = `${key}.json`
-      if (await exists(fileName, { dir: BaseDirectory.AppConfig })) {
-        const raw = await readTextFile(fileName, { dir: BaseDirectory.AppConfig })
-        out[key] = JSON.parse(raw)
-      }
-    } catch { /* ignore unreadable key */ }
-  }
-  return out
-}
-
-async function desktopSet(key: string, value: unknown): Promise<void> {
-  const { writeTextFile, BaseDirectory, createDir, exists } = await import('@tauri-apps/api/fs')
-  const { appConfigDir } = await import('@tauri-apps/api/path')
-  try {
-    const configDir = await appConfigDir()
-    if (!(await exists(configDir))) {
-      await createDir(configDir, { recursive: true })
-    }
-    await writeTextFile(`${key}.json`, JSON.stringify(value), { dir: BaseDirectory.AppConfig })
-  } catch (e) {
-    console.error('Failed to write to Tauri FS', e)
-  }
-}
-
-async function desktopRemove(key: string): Promise<void> {
-  const { removeFile, exists, BaseDirectory } = await import('@tauri-apps/api/fs')
-  try {
-    const fileName = `${key}.json`
-    if (await exists(fileName, { dir: BaseDirectory.AppConfig })) {
-      await removeFile(fileName, { dir: BaseDirectory.AppConfig })
-    }
-  } catch { /* ignore */ }
-}
 
 function rawGetMany(keys: string[]): Promise<Record<string, unknown>> {
-  if (isTauri()) return desktopGetMany(keys)
-
-  return new Promise((resolve) => {
-    if (hasChromeStorage()) {
-      chrome.storage.local.get(keys, (result) => resolve(result))
-      return
-    }
-    const out: Record<string, unknown> = {}
-    for (const key of keys) {
-      try {
-        const raw = localStorage.getItem(key)
-        if (raw !== null) out[key] = JSON.parse(raw)
-      } catch { /* ignore unreadable key */ }
-    }
-    resolve(out)
-  })
+  return platform.storageGet(keys)
 }
 
 function rawGet<T>(key: string): Promise<T | undefined> {
@@ -109,29 +49,11 @@ function rawGet<T>(key: string): Promise<T | undefined> {
 }
 
 function rawSet(key: string, value: unknown): Promise<void> {
-  if (isTauri()) return desktopSet(key, value)
-
-  return new Promise((resolve) => {
-    if (hasChromeStorage()) {
-      chrome.storage.local.set({ [key]: value }, () => resolve())
-      return
-    }
-    try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* quota exceeded / unavailable */ }
-    resolve()
-  })
+  return platform.storageSet(key, value)
 }
 
 function rawRemove(key: string): Promise<void> {
-  if (isTauri()) return desktopRemove(key)
-
-  return new Promise((resolve) => {
-    if (hasChromeStorage()) {
-      chrome.storage.local.remove(key, () => resolve())
-      return
-    }
-    try { localStorage.removeItem(key) } catch { /* ignore */ }
-    resolve()
-  })
+  return platform.storageRemove(key)
 }
 
 // Per-key write queue so concurrent writes to the same key resolve in call order.

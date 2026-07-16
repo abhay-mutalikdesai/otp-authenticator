@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect } from 'react'
 import type { KeyboardEventHandler } from 'react'
 import useEntriesStore from '../store/entriesStore'
 import useSettingsStore from '../store/settingsStore'
@@ -13,8 +13,9 @@ import { Reorder } from './views/Reorder'
 import { Settings } from './views/settings/Settings'
 import { About } from './views/About'
 import { MasterPasswordPrompt } from './components/MasterPasswordPrompt'
-import { invoke } from '@tauri-apps/api/tauri'
-import { appWindow } from '@tauri-apps/api/window'
+import { platform } from '../lib/platform'
+import { useAutoLock } from '../hooks/useAutoLock'
+import { useTheme } from '../hooks/useTheme'
 
 /** Max age for restoring draft form state without master password. */
 const UNPROTECTED_SESSION_MAX_AGE_MS = 5 * 60 * 1000
@@ -24,9 +25,7 @@ export default function App() {
   const loadFromStorage = useEntriesStore(s => s.loadFromStorage)
   const loadSettings = useSettingsStore(s => s.loadSettings)
   const settingsLoaded = useSettingsStore(s => s.loaded)
-  const theme = useSettingsStore(s => s.theme)
   const windowMode = useSettingsStore(s => s.windowMode)
-  const autoLockMinutes = useSettingsStore(s => s.autoLockMinutes)
   const mpReminderSnoozeUntil = useSettingsStore(s => s.mpReminderSnoozeUntil)
   const view = useNavigationStore(s => s.view)
   const hydrateNavigation = useNavigationStore(s => s.hydrate)
@@ -36,10 +35,10 @@ export default function App() {
   const hasMasterPassword = useAuthStore(s => s.hasMasterPassword)
   const checkAuth = useAuthStore(s => s.checkAuth)
   const lock = useAuthStore(s => s.lock)
-  const touchSession = useAuthStore(s => s.touchSession)
 
-  const lockTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const lastTouchRef = useRef(0)
+  // Use custom hooks for isolated concerns
+  useTheme()
+  const { resetLockTimer } = useAutoLock()
 
   useEffect(() => {
     (async () => {
@@ -54,57 +53,24 @@ export default function App() {
     })()
   }, [loadFromStorage, loadSettings, checkAuth, hydrateNavigation])
 
-  // Theme
-  useEffect(() => {
-    const root = document.documentElement
-    const apply = (dark: boolean) => dark ? root.setAttribute('data-theme', 'dark') : root.removeAttribute('data-theme')
-    if (theme === 'dark') { apply(true); return }
-    if (theme === 'light') { apply(false); return }
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    apply(mq.matches)
-    const fn = (e: MediaQueryListEvent) => apply(e.matches)
-    mq.addEventListener('change', fn)
-    return () => mq.removeEventListener('change', fn)
-  }, [theme])
-
   // Window Mode
   useEffect(() => {
     if (settingsLoaded) {
-      invoke('set_window_mode', { mode: !!windowMode }).catch(() => {})
+      platform.setWindowMode(!!windowMode).catch(() => {})
     }
   }, [windowMode, settingsLoaded])
 
-  // Sync auth state to rust for window mode positioning logic
+  // Sync auth state to platform for window mode positioning logic
   useEffect(() => {
-    invoke('set_auth_state', { locked, hasMaster: hasMasterPassword }).catch(() => {})
+    platform.syncAuthState(locked, hasMasterPassword).catch(() => {})
   }, [locked, hasMasterPassword])
-
-  // Auto-lock timer: reset on interaction, lock after idle. Refreshes session timestamp.
-  const resetLockTimer = useCallback(() => {
-    const now = Date.now()
-    if (now - lastTouchRef.current < 2000) return
-    lastTouchRef.current = now
-
-    if (lockTimerRef.current) clearTimeout(lockTimerRef.current)
-    if (hasMasterPassword && !locked) {
-      touchSession()
-      if (autoLockMinutes > 0) {
-        lockTimerRef.current = setTimeout(() => lock(), autoLockMinutes * 60 * 1000)
-      }
-    }
-  }, [hasMasterPassword, autoLockMinutes, locked, lock, touchSession])
-
-  useEffect(() => {
-    resetLockTimer()
-    return () => { if (lockTimerRef.current) clearTimeout(lockTimerRef.current) }
-  }, [resetLockTimer])
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     resetLockTimer()
     if (windowMode && e.button === 0) {
       const target = e.target as HTMLElement
       if (target.closest('[data-app-drag-region]') && !target.closest('button, input, a, textarea, select, [data-no-drag]')) {
-        appWindow.startDragging().catch(() => {})
+        platform.startDrag()
       }
     }
   }, [resetLockTimer, windowMode])

@@ -1,0 +1,1113 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Component Styles — OTP Authenticator
+   All shared UI classes extracted from inline styles. Uses design tokens
+   from global.css. Organized by component.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Shared / Utility ──────────────────────────────────────────────────── */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--c-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 0 20px;
+}
+
+.view-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.view-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Buttons ───────────────────────────────────────────────────────────── */
+.btn {
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity .15s;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn--primary {
+  background: var(--c-primary);
+  color: #fff;
+}
+
+.btn--primary:disabled {
+  background: var(--c-border);
+  color: var(--c-text3);
+}
+
+.btn--secondary {
+  background: var(--c-surface2);
+  border: 1px solid var(--c-border);
+  color: var(--c-text);
+}
+
+.btn--danger {
+  background: var(--c-danger);
+  color: #fff;
+}
+
+.btn--danger-outline {
+  background: #FFF5F5;
+  border: 1px solid #FFCDD2;
+  color: var(--c-danger);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--c-text);
+}
+
+.btn--full {
+  width: 100%;
+}
+
+.btn--lg {
+  padding: 12px;
+  border-radius: 11px;
+  font-size: 14px;
+}
+
+.btn--md {
+  padding: 9px 14px;
+  border-radius: 10px;
+}
+
+.btn--sm {
+  padding: 8px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.btn--pill {
+  border-radius: 20px;
+  padding: 9px 14px;
+  font-weight: 600;
+  gap: 6px;
+  flex: 1;
+}
+
+/* ─── Icon Button ───────────────────────────────────────────────────────── */
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--c-text2);
+  flex-shrink: 0;
+  transition: background .15s, color .15s;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: var(--c-border);
+}
+
+.icon-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.icon-btn--active {
+  background: var(--c-primary);
+  color: #fff;
+}
+
+.icon-btn--active:hover:not(:disabled) {
+  background: var(--c-primary);
+}
+
+.icon-btn--danger {
+  color: var(--c-danger);
+}
+
+/* ─── Tooltip ───────────────────────────────────────────────────────────── */
+.tooltip-wrap {
+  display: inline-flex;
+  position: relative;
+}
+
+.tooltip-bubble {
+  background: var(--c-text);
+  color: var(--c-surface);
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ─── Drop Menu ─────────────────────────────────────────────────────────── */
+.drop-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  cursor: default;
+}
+
+.drop-menu {
+  position: absolute;
+  right: 0;
+  top: 38px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  z-index: 90;
+  overflow: hidden;
+  min-width: 185px;
+}
+
+.drop-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: var(--c-text);
+}
+
+.drop-menu__item:hover {
+  background: var(--c-surface2);
+}
+
+.drop-menu__item--danger {
+  color: var(--c-danger);
+}
+
+/* ─── Header ────────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 6px;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+  gap: 2px;
+  z-index: 10;
+  position: relative;
+}
+
+.header--draggable {
+  cursor: move;
+}
+
+.header__title {
+  flex: 1;
+  font-weight: 700;
+  font-size: 15px;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ─── Confirm Modal ─────────────────────────────────────────────────────── */
+.confirm-modal {
+  background: var(--c-surface);
+  border-radius: 16px;
+  padding: 22px 20px;
+  width: 100%;
+  max-width: 320px;
+}
+
+.confirm-modal__title {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.confirm-modal__msg {
+  color: var(--c-text2);
+  font-size: 13px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.confirm-modal__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ─── Section Layout ────────────────────────────────────────────────────── */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text2);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding: 14px 2px 6px;
+}
+
+.section-card {
+  background: var(--c-surface);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--c-border);
+  margin-bottom: 8px;
+}
+
+.section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  gap: 12px;
+}
+
+.section-row--bordered {
+  border-bottom: 1px solid var(--c-border);
+}
+
+.section-row__label {
+  font-size: 13px;
+  color: var(--c-text);
+}
+
+.section-row__value {
+  flex-shrink: 0;
+}
+
+/* ─── Form Fields ───────────────────────────────────────────────────────── */
+.field {
+  margin-bottom: 13px;
+}
+
+.field__label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text2);
+  display: block;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.field__error {
+  font-size: 12px;
+  color: var(--c-danger);
+  margin-top: 4px;
+}
+
+.input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: var(--c-primary);
+}
+
+.input--with-suffix {
+  padding-right: 38px;
+}
+
+.input-suffix {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.input-wrap {
+  position: relative;
+}
+
+.pw-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--c-text2);
+  display: flex;
+  padding: 2px;
+}
+
+.pw-actions {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: 14px;
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.select:focus {
+  border-color: var(--c-primary);
+}
+
+.mini-select {
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  max-width: 140px;
+}
+
+/* ─── Account Card ──────────────────────────────────────────────────────── */
+.account-card {
+  background: var(--c-surface);
+  border-radius: 13px;
+  padding: 11px 10px 11px 13px;
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1.5px solid var(--c-border);
+  cursor: pointer;
+  position: relative;
+  transition: border-color .15s;
+  user-select: none;
+}
+
+.account-card--selected {
+  border-color: var(--c-primary);
+}
+
+.account-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-card__label {
+  font-size: 12px;
+  color: var(--c-text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.account-card__otp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-card__controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.account-card__select-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2.5px solid var(--c-border);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all .15s;
+}
+
+.account-card__select-dot--active {
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+}
+
+.account-card__hotp-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-surface2);
+  color: var(--c-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.account-card__fav-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #F59E0B;
+}
+
+.account-card__more-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-text3);
+  position: relative;
+  z-index: 1;
+}
+
+.account-card__more-btn:hover {
+  background: var(--c-border);
+}
+
+/* ─── OTP Code ──────────────────────────────────────────────────────────── */
+.otp-code {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  color: var(--c-primary);
+}
+
+.otp-code--hidden {
+  letter-spacing: 0.1em;
+  color: var(--c-text3);
+}
+
+.otp-code--detail {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+/* ─── Avatar ────────────────────────────────────────────────────────────── */
+.avatar {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* ─── Tab Bar ───────────────────────────────────────────────────────────── */
+.tab-bar {
+  display: flex;
+  padding: 8px 12px 0;
+  gap: 6px;
+  background: var(--c-surface2);
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+}
+
+.tab-bar__btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 0 9px;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  color: var(--c-text2);
+  font-weight: 500;
+  font-size: 13px;
+  transition: color .15s, border-color .15s;
+}
+
+.tab-bar__btn--active {
+  border-bottom-color: var(--c-primary);
+  color: var(--c-primary);
+  font-weight: 700;
+}
+
+.tab-bar__badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--c-border);
+  color: var(--c-text3);
+  border-radius: 10px;
+  padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.tab-bar__badge--active {
+  background: var(--c-primary);
+  color: #fff;
+}
+
+/* ─── Toast ─────────────────────────────────────────────────────────────── */
+.toast-container {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  pointer-events: none;
+  width: 100%;
+}
+
+.toast {
+  color: #fff;
+  padding: 7px 18px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  animation: toastIn 200ms ease both;
+}
+
+/* ─── App Logo ──────────────────────────────────────────────────────────── */
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+.app-logo__icon {
+  flex-shrink: 0;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.app-logo__name {
+  font-weight: 700;
+  font-size: 15px;
+  pointer-events: none;
+}
+
+/* ─── Empty State ───────────────────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 32px;
+  text-align: center;
+}
+
+.empty-state__icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(99,102,241,.12), rgba(139,92,246,.12));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.empty-state__title {
+  font-size: 17px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.empty-state__desc {
+  font-size: 13px;
+  color: var(--c-text2);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* ─── Lock Screen ───────────────────────────────────────────────────────── */
+.lock-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: var(--c-surface);
+}
+
+.lock-screen__icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.lock-screen__title {
+  font-size: 19px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.lock-screen__subtitle {
+  font-size: 13px;
+  color: var(--c-text2);
+  margin-bottom: 24px;
+}
+
+.lock-screen__form {
+  width: 100%;
+  max-width: 280px;
+}
+
+/* ─── Master Password Prompt ────────────────────────────────────────────── */
+.mp-prompt {
+  background: var(--c-surface);
+  border-radius: 16px;
+  padding: 22px 20px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.mp-prompt__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366F1, #8B5CF6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Main List Header ──────────────────────────────────────────────────── */
+.main-header {
+  display: flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 4px;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.main-header__search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  color: var(--c-text);
+  outline: none;
+}
+
+/* ─── FAB ───────────────────────────────────────────────────────────────── */
+.fab {
+  position: absolute;
+  bottom: 18px;
+  right: 14px;
+  z-index: 20;
+}
+
+.fab__btn {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--c-primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  transition: transform .15s;
+}
+
+.fab__btn:hover {
+  transform: scale(1.1);
+}
+
+/* ─── Entry Detail ──────────────────────────────────────────────────────── */
+.detail-hero {
+  background: var(--c-surface2);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 11px;
+  border: 1px solid var(--c-border);
+  text-align: center;
+}
+
+.detail-hero__name {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.detail-hero__account {
+  color: var(--c-text2);
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.detail-hero__otp-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  min-height: 52px;
+}
+
+.detail-hero__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.detail-footer {
+  flex-shrink: 0;
+  padding: 10px 13px 12px;
+  border-top: 1px solid var(--c-border);
+  background: var(--c-surface);
+  display: flex;
+  gap: 8px;
+}
+
+.detail-footer__btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 9px 0;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.detail-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+}
+
+.detail-info-row--bordered {
+  border-bottom: 1px solid var(--c-border);
+}
+
+.detail-info-key {
+  color: var(--c-text2);
+  font-size: 13px;
+}
+
+.detail-info-val {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* ─── Add/Edit Entry ────────────────────────────────────────────────────── */
+.import-box {
+  background: var(--c-surface2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 13px;
+  border: 1px solid var(--c-border);
+}
+
+.import-box__title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-text2);
+  margin-bottom: 7px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.import-box__uri-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1.5px solid var(--c-border);
+  border-radius: 7px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.import-box__uri-input:focus {
+  border-color: var(--c-primary);
+}
+
+.import-box__action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 7px;
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-border);
+  color: var(--c-text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.type-toggle-btn {
+  flex: 1;
+  padding: 9px;
+  border-radius: 8px;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.type-toggle-btn--active {
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+  color: #fff;
+}
+
+.advanced-toggle {
+  font-size: 13px;
+  color: var(--c-primary);
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.advanced-box {
+  background: var(--c-surface2);
+  border-radius: 10px;
+  padding: 12px 12px 2px;
+  margin-bottom: 13px;
+  border: 1px solid var(--c-border);
+}
+
+.form-footer {
+  flex-shrink: 0;
+  padding: 10px 13px 13px;
+  border-top: 1px solid var(--c-border);
+  background: var(--c-surface);
+}
+
+/* ─── Reorder ───────────────────────────────────────────────────────────── */
+.reorder-hint {
+  font-size: 12px;
+  color: var(--c-text2);
+  padding: 7px 14px;
+  text-align: center;
+  border-bottom: 1px solid var(--c-border);
+  flex-shrink: 0;
+  background: var(--c-surface2);
+}
+
+.reorder-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  background: var(--c-surface);
+  border-radius: 11px;
+  padding: 10px 13px;
+  margin-bottom: 7px;
+  cursor: grab;
+  border: 1px solid var(--c-border);
+}
+
+.reorder-item--hover {
+  border: 1.5px dashed var(--c-primary);
+}
+
+.reorder-item__name {
+  font-weight: 600;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reorder-item__account {
+  font-size: 11px;
+  color: var(--c-text2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── About ─────────────────────────────────────────────────────────────── */
+.about-disclaimer {
+  color: var(--c-text);
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 800;
+  margin-top: 22px;
+  text-align: center;
+}
+
+/* ─── Import/Export Panel ───────────────────────────────────────────────── */
+.ie-tab-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1.5px solid var(--c-border);
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.ie-tab-btn--active {
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+  color: #fff;
+}
+
+.ie-upload-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font-weight: 600;
+  font-size: 13px;
+  border: 1.5px dashed var(--c-border);
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.ie-textarea {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1.5px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  resize: none;
+  font-size: 13px;
+  outline: none;
+  margin-bottom: 7px;
+  box-sizing: border-box;
+}
+
+/* ─── Master Password Panel ─────────────────────────────────────────────── */
+.mp-panel-idle {
+  padding: 10px 14px 12px;
+}
+
+.mp-panel-form {
+  padding: 10px 14px 14px;
+  border-top: 1px solid var(--c-border);
+  background: var(--c-surface2);
+}
+
+.mp-panel-form__title {
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 10px;
+  color: var(--c-text);
+}
+
+/* ─── Validation Messages ───────────────────────────────────────────────── */
+.msg-success {
+  font-size: 12px;
+  color: var(--c-success);
+}
+
+.msg-error {
+  font-size: 12px;
+  color: var(--c-danger);
+}
+
+/* ─── Selection Count ───────────────────────────────────────────────────── */
+.select-count {
+  flex: 1;
+  font-weight: 700;
+  font-size: 14px;
+  margin-left: 6px;
+}

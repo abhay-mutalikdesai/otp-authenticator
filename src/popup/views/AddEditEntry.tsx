@@ -12,6 +12,7 @@ import { useToast } from '../components/Toast'
 import { Header, Field, PwInput, TextInput, FSelect } from '../components/primitives'
 import { Icons } from '../components/Icons'
 import jsQR from 'jsqr'
+import { platform } from '../../lib/platform'
 
 const UNPROTECTED_DRAFT_MAX_AGE_MS = 5 * 60 * 1000
 
@@ -29,7 +30,6 @@ export function AddEditEntry() {
   const [issuer, setIssuer] = useState(ex?.issuer ?? '')
   const [account, setAccount] = useState(ex?.account ?? '')
   const [secret, setSecret] = useState(ex?.secret ?? '')
-  // New accounts default to Auto-detect encoding. Existing entries resolve to their concrete encoding.
   const [encoding, setEncoding] = useState<Encoding>(() => {
     if (!ex) return 'auto'
     return ex.encoding === 'auto' ? detectEncoding(ex.secret) : ex.encoding
@@ -105,21 +105,15 @@ export function AddEditEntry() {
       const url = URL.createObjectURL(file)
       const img = new Image()
       img.src = url
-      await new Promise((resolve, reject) => {
-        img.onload = resolve
-        img.onerror = reject
-      })
+      await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject })
       URL.revokeObjectURL(url)
-
       const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
+      canvas.width = img.width; canvas.height = img.height
       const ctx = canvas.getContext('2d')
       if (!ctx) throw new Error('Failed to get canvas context')
       ctx.drawImage(img, 0, 0)
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
       const code = jsQR(imageData.data, imageData.width, imageData.height)
-
       if (code) {
         setUri(code.data)
         try {
@@ -128,15 +122,9 @@ export function AddEditEntry() {
           setSecret(p.secret); setAlgorithm(p.algorithm); setDigits(String(p.digits))
           setPeriod(String(p.period)); setCounter(String(p.counter)); setEncoding('base32'); setUriErr('')
           show('QR Code parsed successfully', 'success')
-        } catch (e) {
-          setUriErr((e as Error).message)
-        }
-      } else {
-        setUriErr('No QR code found in the image.')
-      }
-    } catch {
-      setUriErr('Failed to read image.')
-    }
+        } catch (e) { setUriErr((e as Error).message) }
+      } else { setUriErr('No QR code found in the image.') }
+    } catch { setUriErr('Failed to read image.') }
   }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,9 +146,7 @@ export function AddEditEntry() {
         }
       }
       setUriErr('No image found in clipboard.')
-    } catch {
-      setUriErr('Failed to read clipboard. Please allow clipboard permissions or paste directly into the text field.')
-    }
+    } catch { setUriErr('Failed to read clipboard. Please allow clipboard permissions or paste directly into the text field.') }
   }
 
   const save = async () => {
@@ -187,33 +173,37 @@ export function AddEditEntry() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }} className="anim-slide-right">
+    <div className="view-container anim-slide-right">
       <Header title={isEdit ? 'Edit Account' : 'Add Account'} onBack={goBack} />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '13px 13px 0' }}>
+      <div className="view-body" style={{ padding: '13px 13px 0' }}>
 
         {!isEdit && (
-          <div style={{ background: 'var(--c-surface2)', borderRadius: 10, padding: '10px 12px', marginBottom: 13, border: '1px solid var(--c-border)' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text2)', marginBottom: 7, textTransform: 'uppercase', letterSpacing: '.05em' }}>Import Account</p>
+          <div className="import-box">
+            <p className="import-box__title">Import Account</p>
             <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
               <input type="password" value={uri} onChange={e => setUri(e.target.value)} placeholder="otpauth://totp/..."
-                style={{ flex: 1, padding: '8px 10px', border: '1.5px solid var(--c-border)', borderRadius: 7, background: 'var(--c-surface)', color: 'var(--c-text)', fontSize: 13, outline: 'none', boxSizing: 'border-box' }}
-                onFocus={e => (e.currentTarget.style.borderColor = 'var(--c-primary)')}
-                onBlur={e => (e.currentTarget.style.borderColor = 'var(--c-border)')} />
-              <button onClick={parseUri} style={{ padding: '8px 13px', borderRadius: 7, background: 'var(--c-primary)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer', border: 'none', whiteSpace: 'nowrap' }}>Parse</button>
+                className="import-box__uri-input" />
+              <button onClick={parseUri} className="btn btn--primary" style={{ padding: '8px 13px', borderRadius: 7, whiteSpace: 'nowrap' }}>Parse</button>
             </div>
             <div style={{ display: 'flex', gap: 6 }}>
-              <label style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', borderRadius: 7, background: 'var(--c-surface)', border: '1.5px solid var(--c-border)', color: 'var(--c-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              <label className="import-box__action-btn">
                 <Icons.Upload size={16} />
                 Upload QR
-                <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFileUpload} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onClick={() => { platform.setIgnoreBlur(true).catch(() => {}) }}
+                  onChange={handleFileUpload}
+                />
               </label>
-              <button onClick={handlePaste} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '8px', borderRadius: 7, background: 'var(--c-surface)', border: '1.5px solid var(--c-border)', color: 'var(--c-text)', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+              <button onClick={handlePaste} className="import-box__action-btn">
                 <Icons.Clipboard size={16} />
                 Paste QR
               </button>
             </div>
-            {uriErr && <p style={{ color: 'var(--c-danger)', fontSize: 12, marginTop: 6, textAlign: 'center' }}>{uriErr}</p>}
+            {uriErr && <p className="msg-error" style={{ marginTop: 6, textAlign: 'center' }}>{uriErr}</p>}
           </div>
         )}
 
@@ -222,7 +212,7 @@ export function AddEditEntry() {
             <div style={{ display: 'flex', gap: 6 }}>
               {(['totp', 'hotp'] as OtpType[]).map(t => (
                 <button key={t} onClick={() => setType(t)}
-                  style={{ flex: 1, padding: '9px', borderRadius: 8, border: `1.5px solid ${type === t ? 'var(--c-primary)' : 'var(--c-border)'}`, background: type === t ? 'var(--c-primary)' : 'var(--c-surface)', color: type === t ? '#fff' : 'var(--c-text)', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+                  className={`type-toggle-btn ${type === t ? 'type-toggle-btn--active' : ''}`}>
                   {t.toUpperCase()}
                 </button>
               ))}
@@ -235,17 +225,16 @@ export function AddEditEntry() {
 
         <Field label="Secret Key" error={errs.secret}>
           <PwInput value={secret} onChange={v => { setSecret(v); setErrs(p => ({ ...p, secret: '' })) }} placeholder="secret key" />
-          {preview && !errs.secret && <p style={{ fontSize: 12, color: 'var(--c-success)', marginTop: 4 }}>✓ Valid — preview: {preview}</p>}
-          {previewErr && !errs.secret && <p style={{ fontSize: 12, color: 'var(--c-danger)', marginTop: 4 }}>✗ {previewErr}</p>}
+          {preview && !errs.secret && <p className="msg-success" style={{ marginTop: 4 }}>✓ Valid — preview: {preview}</p>}
+          {previewErr && !errs.secret && <p className="msg-error" style={{ marginTop: 4 }}>✗ {previewErr}</p>}
         </Field>
 
-        <button onClick={() => setAdv(v => !v)}
-          style={{ fontSize: 13, color: 'var(--c-primary)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 12px', display: 'flex', alignItems: 'center', gap: 4 }}>
+        <button onClick={() => setAdv(v => !v)} className="advanced-toggle">
           {adv ? '▴ Hide' : '▾ Show'} advanced options
         </button>
 
         {adv && (
-          <div style={{ background: 'var(--c-surface2)', borderRadius: 10, padding: '12px 12px 2px', marginBottom: 13, border: '1px solid var(--c-border)' }}>
+          <div className="advanced-box">
             <Field label="Encoding">
               <FSelect value={encoding} onChange={v => setEncoding(v as Encoding)} options={[{ value: 'auto', label: 'Auto-detect' }, { value: 'base32', label: 'Base32' }, { value: 'base64', label: 'Base64' }, { value: 'hex', label: 'Hex' }]} />
             </Field>
@@ -269,9 +258,10 @@ export function AddEditEntry() {
         <div style={{ height: 8 }} />
       </div>
 
-      <div style={{ flexShrink: 0, padding: '10px 13px 13px', borderTop: '1px solid var(--c-border)', background: 'var(--c-surface)' }}>
+      <div className="form-footer">
         <button onClick={save} disabled={saving}
-          style={{ width: '100%', padding: '12px', borderRadius: 11, background: saving ? 'var(--c-border)' : 'var(--c-primary)', color: saving ? 'var(--c-text3)' : '#fff', fontWeight: 700, fontSize: 14, border: 'none', cursor: saving ? 'not-allowed' : 'pointer' }}>
+          className={`btn btn--lg btn--full ${saving ? '' : 'btn--primary'}`}
+          style={saving ? { background: 'var(--c-border)', color: 'var(--c-text3)', cursor: 'not-allowed' } : undefined}>
           {saving ? 'Saving…' : isEdit ? 'Save Changes' : 'Add Account'}
         </button>
       </div>

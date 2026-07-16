@@ -91,6 +91,13 @@ fn main() {
         .with_menu(tray_menu);
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            // A second instance was launched — focus the existing window instead
+            if let Some(window) = app.get_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }))
         .manage(AppState {
             last_tray_pos: std::sync::Mutex::new(None),
         })
@@ -150,8 +157,18 @@ fn main() {
                     }
                 }
             }
-            tauri::WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                let _ = event.window().set_size(tauri::Size::Physical(*new_inner_size));
+            tauri::WindowEvent::Resized(_) => {
+                // No-op: the window is non-resizable via config.
+            }
+            tauri::WindowEvent::ScaleFactorChanged { .. } => {
+                // When dragging to a monitor with a different DPI, Windows fires this event.
+                // WebView2 with transparent + decorationless windows doesn't always resize the
+                // content area correctly. Re-applying the logical size forces Tauri/WRY to
+                // recompute the correct physical size for the new scale factor.
+                let _ = event.window().set_size(tauri::Size::Logical(tauri::LogicalSize {
+                    width: 380.0,
+                    height: 580.0,
+                }));
             }
             _ => {}
         })

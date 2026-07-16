@@ -8,9 +8,9 @@ const REPO_URL = 'https://github.com/abhay-mutalikdesai/otp-authenticator'
 export function About() {
   const { goBack } = useNavigationStore()
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }} className="anim-slide-right">
+    <div className="view-container anim-slide-right">
       <Header title="About" onBack={goBack} />
-      <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div className="view-body" style={{ padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <img src="/icons/icon-128.png" width={72} height={72} alt="" style={{ marginBottom: 14, marginTop: 16 }} />
         <p style={{ fontSize: 19, fontWeight: 800, marginBottom: 4 }}>OTP Authenticator</p>
         <p style={{ color: 'var(--c-text2)', fontSize: 13, marginBottom: 12 }}>Secure · Private · Local-first</p>
@@ -28,14 +28,14 @@ export function About() {
               </a>
             )],
           ].map(([k, v], i, arr) => (
-            <div key={k as string} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', borderBottom: i < arr.length - 1 ? '1px solid var(--c-border)' : 'none', gap: 12 }}>
-              <span style={{ color: 'var(--c-text2)', fontSize: 13, alignSelf: 'center' }}>{k as string}</span>
-              <span style={{ fontWeight: 600, fontSize: 13, textAlign: 'right', display: 'flex', alignItems: 'center' }}>{v}</span>
+            <div key={k as string} className={`detail-info-row ${i < arr.length - 1 ? 'detail-info-row--bordered' : ''}`} style={{ gap: 12 }}>
+              <span className="detail-info-key" style={{ alignSelf: 'center' }}>{k as string}</span>
+              <span className="detail-info-val" style={{ textAlign: 'right', display: 'flex', alignItems: 'center' }}>{v}</span>
             </div>
           ))}
         </SectionCard>
 
-        <p style={{ color: 'var(--c-text)', fontSize: 12, fontStyle: 'italic', fontWeight: 800, marginTop: 22, textAlign: 'center' }}>
+        <p className="about-disclaimer">
           Disclaimer: This app is AI generated and vibe coded.
         </p>
       </div>

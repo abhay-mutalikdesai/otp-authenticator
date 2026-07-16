@@ -20,9 +20,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={{ show }}>
       {children}
-      <div style={{ position: 'absolute', bottom: 14, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center', pointerEvents: 'none', width: '100%' }}>
+      <div className="toast-container">
         {toasts.map(t => (
-          <div key={t.id} style={{ background: TOAST_COLORS[t.type], color: '#fff', padding: '7px 18px', borderRadius: 20, fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', animation: 'toastIn 200ms ease both' }}>
+          <div key={t.id} className="toast" style={{ background: TOAST_COLORS[t.type] }}>
             {t.msg}
           </div>
         ))}
